@@ -1,0 +1,9 @@
+.chart-container {
+    max-width: 500px; /* Ajusta el ancho máximo */
+    margin: 0 auto; /* Centra la gráfica */
+}
+
+#graficaGeneral {
+    width: 100% !important;
+    height: auto !important;
+}
