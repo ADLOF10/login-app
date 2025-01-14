@@ -19,7 +19,7 @@ class CreateQrCodesTable extends Migration
                 $table->unsignedBigInteger('grupo_id');
                 $table->string('tipo');
                 $table->time('hora_clase');
-                $table->string('codigo');
+                $table->text('codigo');
                 $table->datetime('expira_at');
                 $table->unsignedBigInteger('materia_id');
                 $table->timestamps();
