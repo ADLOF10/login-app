@@ -191,6 +191,8 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="">Cuenta</a></li>
+                            <li><a class="dropdown-item" href="">{{Auth::user()->name;}}</a></li>
+                            <li><a class="dropdown-item" href="">{{Auth::user()->email;}}</a></li>
                             <li>
                                 <form action="{{ route('logout') }}" method="POST" class="d-inline">
                                     @csrf

@@ -37,7 +37,8 @@
         </div>
         <div class="mb-3">
             <label for="fecha_clase" class="form-label">Fecha de Clase:</label>
-            <input type="date" name="fecha_clase" id="fecha_clase" class="form-control" required>
+            <input type="date" name="fecha_clase" id="fecha_clase" class="form-control" required 
+            min="{{ date('Y-m-d') }}">
         </div>
         <div class="mb-3">
             <label for="hora_clase" class="form-label">Hora de Clase:</label>

@@ -61,7 +61,7 @@
             <label for="password" class="form-label">Contraseña</label>
             <input type="password" class="form-control" id="password" name="password" 
                 pattern="(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}" 
-                title="La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un carácter especial."
+                title="La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un carácter especial $,!,@."
                 required>
             <small class="form-text text-muted">La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un carácter especial.</small>
             @error('password')
