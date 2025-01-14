@@ -24,14 +24,37 @@
             placeholder="Buscar alumnos en este grupo..."
         >
     </div>
-    @if($grupo->alumnos->isEmpty())
+    <div id="no-alumnos-message" class="{{ $grupo->alumnos->isEmpty() ? '' : 'd-none' }}">
         <p>No hay alumnos asignados a este grupo.</p>
-    @else
-        <ul class="list-group mb-4" id="alumnos-grupo-list">
-            @foreach($grupo->alumnos as $alumno)
-            <li class="list-group-item">{{ $alumno->nombre }} {{ $alumno->apellidos }}</li>
-            @endforeach
-        </ul>
+    </div>
+    @if(!$grupo->alumnos->isEmpty())
+        <table class="table table-bordered" id="alumnos-grupo-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo Institucional</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($grupo->alumnos as $alumno)
+                <tr data-alumno-id="{{ $alumno->id }}">
+                    <td>{{ $alumno->nombre }} {{ $alumno->apellidos }}</td>
+                    <td>{{ $alumno->correo_institucional }}</td>
+                    <td>
+                        <button 
+                            class="btn btn-danger btn-sm remove-alumno" 
+                            data-alumno-id="{{ $alumno->id }}" 
+                            data-alumno-nombre="{{ $alumno->nombre }} {{ $alumno->apellidos }}" 
+                            data-alumno-correo="{{ $alumno->correo_institucional }}"
+                        >
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
     @endif
 
     <!-- Asignar Alumnos -->
@@ -41,7 +64,7 @@
             {{ $errors->first('alumnos') }}
         </div>
     @endif
-    <form action="{{ route('grupos.assign-alumnos', $grupo->id) }}" method="POST" class="card p-4 shadow">
+    <form id="assign-student-form" action="{{ route('grupos.assign-alumnos', $grupo->id) }}" method="POST" class="card p-4 shadow">
         @csrf
         <div class="mb-3">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -58,9 +81,11 @@
             </div>
             <select name="alumnos[]" id="alumnos" class="form-select" multiple required>
                 @foreach($alumnos as $alumno)
-                <option value="{{ $alumno->id }}" {{ $grupo->alumnos->contains($alumno->id) ? 'selected' : '' }}>
-                    {{ $alumno->nombre }} {{ $alumno->apellidos }}
+                @unless($grupo->alumnos->contains($alumno->id))
+                <option value="{{ $alumno->id }}" data-alumno-id="{{ $alumno->id }}">
+                    {{ $alumno->nombre }} {{ $alumno->apellidos }} - {{ $alumno->correo_institucional }}
                 </option>
+                @endunless
                 @endforeach
             </select>
         </div>
@@ -68,23 +93,71 @@
 </div>
 
 <script>
+    // Función para permitir solo números y letras
+    function allowAlphanumeric(input) {
+        input.value = input.value.replace(/[^a-zA-Z0-9]/g, '');
+    }
+
     // Filtrar alumnos en este grupo
     document.getElementById('search-alumnos-grupo').addEventListener('input', function() {
+        allowAlphanumeric(this);
         const filter = this.value.toLowerCase();
-        const alumnos = document.querySelectorAll('#alumnos-grupo-list .list-group-item');
-        alumnos.forEach(alumno => {
-            const text = alumno.textContent.toLowerCase();
-            alumno.style.display = text.includes(filter) ? '' : 'none';
+        const rows = document.querySelectorAll('#alumnos-grupo-table tbody tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
         });
     });
 
     // Filtrar alumnos en el selector múltiple
     document.getElementById('search-alumnos-asignar').addEventListener('input', function() {
+        allowAlphanumeric(this);
         const filter = this.value.toLowerCase();
         const opciones = document.querySelectorAll('#alumnos option');
         opciones.forEach(opcion => {
             const text = opcion.textContent.toLowerCase();
             opcion.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+
+    // Eliminar alumnos del grupo dinámicamente
+    document.querySelectorAll('.remove-alumno').forEach(button => {
+        button.addEventListener('click', function() {
+            const alumnoId = this.dataset.alumnoId;
+            const nombre = this.dataset.alumnoNombre;
+            const correo = this.dataset.alumnoCorreo;
+
+            fetch('{{ route('grupos.remove-alumno', $grupo->id) }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ alumno_id: alumnoId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Eliminar de la tabla
+                    const row = document.querySelector(`#alumnos-grupo-table tbody tr[data-alumno-id="${alumnoId}"]`);
+                    row.remove();
+
+                    // Verificar si ya no hay alumnos en la tabla
+                    const remainingRows = document.querySelectorAll('#alumnos-grupo-table tbody tr');
+                    if (remainingRows.length === 0) {
+                        document.getElementById('alumnos-grupo-table').classList.add('d-none');
+                        document.getElementById('no-alumnos-message').classList.remove('d-none');
+                    }
+
+                    // Agregar al selector múltiple
+                    const select = document.getElementById('alumnos');
+                    const option = document.createElement('option');
+                    option.value = alumnoId;
+                    option.textContent = `${nombre} - ${correo}`;
+                    select.appendChild(option);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
     });
 </script>

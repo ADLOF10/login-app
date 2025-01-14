@@ -28,7 +28,7 @@
             @error('nombre_grupo')
                 <div class="text-danger">{{ $message }}</div>
             @enderror
-        </div>
+        </div>        
         <div class="mb-3">
             <label for="materia_id" class="form-label">Materia:</label>
             <select name="materia_id" id="materia_id" class="form-select" required>

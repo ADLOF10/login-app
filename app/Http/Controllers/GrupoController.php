@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Grupo;
 use App\Models\Materia;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
 
 class GrupoController extends Controller
 {
@@ -60,23 +62,28 @@ class GrupoController extends Controller
     }
 
     public function update(Request $request, Grupo $grupo)
-{
-    $request->validate([
-        'nombre_grupo' => 'required|string|regex:/^[a-zA-Z0-9\s\-]+$/|max:15|unique:grupos,nombre_grupo,' . $grupo->id . ',id,materia_id,' . $request->materia_id,
-        'materia_id' => 'required|exists:materias,id',
-    ], [
-        'nombre_grupo.required' => 'El nombre del grupo es obligatorio.',
-        'nombre_grupo.regex' => 'El nombre del grupo solo puede contener letras, números, espacios y guiones.',
-        'nombre_grupo.max' => 'El nombre del grupo no puede exceder los 15 caracteres.',
-        'nombre_grupo.unique' => 'El grupo ya está registrado para esta materia.',
-        'materia_id.required' => 'Debe seleccionar una materia.',
-        'materia_id.exists' => 'La materia seleccionada no es válida.',
-    ]);
+    {
+        $request->validate([
+            'nombre_grupo' => [
+                'required',
+                'string',
+                'max:15',
+                'regex:/^[a-zA-Z0-9\s\-]+$/',
+                Rule::unique('grupos', 'nombre_grupo')->ignore($grupo->id),
+            ],
+            'materia_id' => 'required|exists:materias,id',
+        ], [
+            'nombre_grupo.required' => 'El nombre del grupo es obligatorio.',
+            'nombre_grupo.regex' => 'El nombre del grupo solo puede contener letras, números, espacios y guiones.',
+            'nombre_grupo.unique' => 'Ya existe un grupo con este nombre.',
+            'materia_id.required' => 'La materia es obligatoria.',
+        ]);
 
-    $grupo->update($request->all());
+        $grupo->update($request->only(['nombre_grupo', 'materia_id']));
 
-    return redirect()->route('grupos.index')->with('success', 'Grupo actualizado exitosamente.');
-}
+        return redirect()->route('grupos.index')->with('success', 'Grupo actualizado exitosamente.');
+    }
+
 
 
     public function show(Grupo $grupo)
@@ -91,4 +98,16 @@ class GrupoController extends Controller
         $grupo->delete(); 
         return redirect()->route('grupos.index')->with('success', 'Grupo eliminado exitosamente.');
     }
+
+    public function removeAlumno(Request $request, Grupo $grupo)
+    {
+        $request->validate([
+            'alumno_id' => 'required|exists:alumnos,id',
+        ]);
+
+        $grupo->alumnos()->detach($request->alumno_id);
+
+        return response()->json(['success' => true]);
+    }
+
 }
