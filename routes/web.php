@@ -20,6 +20,11 @@ use App\Http\Controllers\RegisterController;
 |
 */
 
+
+
+
+
+
 Route::get('/login', [WebLoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [WebLoginController::class, 'login']);
 Route::post('/logout', [WebLoginController::class, 'logout'])->name('logout');
