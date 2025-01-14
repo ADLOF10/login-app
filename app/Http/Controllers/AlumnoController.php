@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Models\Alumno;
 use Illuminate\Http\Request;
 use App\Models\User; 
@@ -9,11 +10,57 @@ use App\Models\QrCode;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Models\Grupo;
+
+
 
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class AlumnoController extends Controller
 {
+
+    public function create()
+{
+    $grupos = Grupo::all();
+    return view('alumnos.create', compact('grupos'));
+}
+
+
+    public function search(Request $request)
+    {
+        $request->validate([
+            'correo_institucional' => 'required|email|exists:alumnos,correo_institucional',
+            'numero_cuenta' => 'required|string|exists:alumnos,numero_cuenta',
+        ]);
+    
+        $alumno = Alumno::where('correo_institucional', $request->correo_institucional)
+                        ->where('numero_cuenta', $request->numero_cuenta)
+                        ->first();
+    
+        if (!$alumno) {
+            return back()->withErrors(['error' => 'Alumno no encontrado.']);
+        }
+    
+        return response()->json($alumno);
+    }
+
+    public function add(Request $request)
+    {
+        $request->validate([
+            'grupo_id' => 'required|exists:grupos,id',
+            'alumno_id' => 'required|exists:alumnos,id',
+        ]);
+
+        $grupo = Grupo::findOrFail($request->grupo_id);
+        $grupo->alumnos()->attach($request->alumno_id);
+
+        return redirect()->route('grupos.index')->with('success', 'Alumno agregado al grupo exitosamente.');
+    }
+
+    
+
     public function index()
     {
         $alumnos = Alumno::with('asistenciasTotales')->get();
@@ -192,7 +239,7 @@ class AlumnoController extends Controller
                 'foto_perfil' => asset('storage/' . $alumno->foto_perfil),
             ]);
         } catch (\Exception $e) {
-            \Log::error("Error al actualizar la foto de perfil: " . $e->getMessage());
+            Log::error("Error al actualizar la foto de perfil: " . $e->getMessage());
             return response()->json(['error' => 'No se pudo actualizar la foto de perfil'], 500);
         }
     }
@@ -217,10 +264,6 @@ class AlumnoController extends Controller
         return response()->json($datosGrafica);
     }
     
-    public function create()
-    {
-        return view('alumnos.create');
-    }
 
     public function store(Request $request)
     {

@@ -17,7 +17,7 @@ class MateriaController extends Controller
 
     public function create()
     {
-       
+    
         $docentes = User::where('role', 'profesor')->get();
         return view('materias.create', compact('docentes'));
     }
@@ -25,9 +25,13 @@ class MateriaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'clave' => 'required|string|max:20|unique:materias',
+            'nombre' => 'required|string|regex:/^[a-zA-Z\s]+$/|max:35',
+            'clave' => 'required|string|regex:/^[a-zA-Z0-9]+$/|max:20|unique:materias',
             'user_id' => 'required|exists:users,id',
+        ], [
+            'nombre.regex' => 'El campo Nombre de la Materia solo puede contener letras y espacios.',
+            'clave.regex' => 'El campo Clave solo puede contener letras y números.',
+            'clave.unique' => 'Esa clave de materia ya fue creada. Intenta con otra.',
         ]);
 
         Materia::create($request->all()); 
@@ -43,9 +47,13 @@ class MateriaController extends Controller
     public function update(Request $request, Materia $materia)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'clave' => 'required|string|max:20|unique:materias,clave,' . $materia->id,
+            'nombre' => 'required|string|regex:/^[a-zA-Z\s]+$/|max:35',
+            'clave' => 'required|string|regex:/^[a-zA-Z0-9]+$/|max:20|unique:materias,clave,' . $materia->id,
             'user_id' => 'required|exists:users,id',
+        ], [
+            'nombre.regex' => 'El campo Nombre de la Materia solo puede contener letras y espacios.',
+            'clave.regex' => 'El campo Clave solo puede contener letras y números.',
+            'clave.unique' => 'Esa clave de materia ya fue creada. Intenta con otra.',
         ]);
 
         $materia->update($request->all()); 

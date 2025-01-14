@@ -1,68 +1,141 @@
 @extends('layouts.app')
 
-@section('title', 'Registrar Alumno')
+@section('title', 'Registrar Nuevo Alumno')
 
 @section('content')
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center ">
-            <h2 class="mb-4">Registrar Nuevo Alumno</h2>
+    <h1 class="mb-4">Registrar Nuevo Alumno</h1>
+
+    <!-- Formulario para buscar al alumno -->
+    <form id="search-student-form" action="{{ route('alumnos.search') }}" method="POST" class="card p-4 shadow">
+        @csrf
+        <div class="mb-3">
+            <label for="correo_institucional" class="form-label">Correo Institucional:</label>
+            <input 
+                type="email" 
+                name="correo_institucional" 
+                id="correo_institucional" 
+                class="form-control @error('correo_institucional') is-invalid @enderror" 
+                maxlength="35" 
+                value="{{ old('correo_institucional') }}" 
+                required 
+                placeholder="Ejemplo: alumno@alumno.uaemex.wip"
+                pattern="^[a-zA-Z._%+-]+@([a-zA-Z]+\.)?uaemex\.wip$"
+                title="El correo debe tener un formato válido: Sin caracteres especiales antes del @."
+            >
+            @error('correo_institucional')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
         </div>
-    <div class="card shadow">
-   
-        <div class="card-body">
-            <form action="{{ route('alumnos.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                
-                <div class="mb-3">
-                    <label for="nombre" class="form-label">Nombre:</label>
-                    <input type="text" name="nombre" id="nombre" class="form-control" 
-                        placeholder="Escribe el nombre del alumno" value="{{ old('nombre') }}" required>
-                    @error('nombre')
-                        <div class="text-danger">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div class="mb-3">
-                    <label for="apellidos" class="form-label">Apellidos:</label>
-                    <input type="text" name="apellidos" id="apellidos" class="form-control" 
-                        placeholder="Escribe los apellidos del alumno" value="{{ old('apellidos') }}" required>
-                    @error('apellidos')
-                        <div class="text-danger">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div class="mb-3">
-                    <label for="correo_institucional" class="form-label">Correo Institucional:</label>
-                    <input type="email" name="correo_institucional" id="correo_institucional" class="form-control" 
-                        placeholder="Ejemplo: alumno@alumno.uaemex.wip" value="{{ old('correo_institucional') }}" required>
-                    @error('correo_institucional')
-                        <div class="text-danger">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div class="mb-3">
-                    <label for="numero_cuenta" class="form-label">Número de Cuenta:</label>
-                    <input type="text" name="numero_cuenta" id="numero_cuenta" class="form-control" 
-                        placeholder="Ejemplo: 1234567" 
-                        value="{{ old('numero_cuenta') }}" 
-                        maxlength="7" 
-                        oninput="this.value=this.value.replace(/[^0-9]/g,'')" 
-                        required>
-                    @error('numero_cuenta')
-                        <div class="text-danger">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div class="mb-3">
-                    <label for="semestre" class="form-label">Semestre:</label>
-                    <input type="text" name="semestre" id="semestre" class="form-control" 
-                        placeholder="Ejemplo: 8vo" value="{{ old('semestre') }}" required>
-                    @error('semestre')
-                        <div class="text-danger">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-success-custom">Registrar Alumno</button>
-                    <a href="{{ route('alumnos.index') }}" class="btn btn-secondary ms-2">Cancelar</a>
-                </div>
-            </form>
+        <div class="mb-3">
+            <label for="numero_cuenta" class="form-label">Número de Cuenta:</label>
+            <input 
+                type="text" 
+                name="numero_cuenta" 
+                id="numero_cuenta" 
+                class="form-control @error('numero_cuenta') is-invalid @enderror" 
+                maxlength="7" 
+                value="{{ old('numero_cuenta') }}" 
+                required 
+                placeholder="Ejemplo: 1234567"
+                pattern="^\d{7}$"
+                title="El número de cuenta debe tener exactamente 7 dígitos."
+            >
+            @error('numero_cuenta')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
         </div>
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">Buscar Alumno</button>
+            <a href="{{ route('alumnos.index') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+
+    <!-- Información del alumno encontrado -->
+    <div id="student-info" class="mt-4 d-none">
+        <h2 class="mb-3">Información del Alumno</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellidos</th>
+                    <th>Semestre</th>
+                    <th>Grupo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="nombre"></td>
+                    <td id="apellidos"></td>
+                    <td id="semestre"></td>
+                    <td>
+                        <select name="grupo_id" id="grupo_id" class="form-select" required>
+                            <option value="">Selecciona un grupo</option>
+                            @foreach($grupos as $grupo)
+                            <option value="{{ $grupo->id }}">{{ $grupo->nombre_grupo }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <form id="add-student-form" action="{{ route('alumnos.add') }}" method="POST" class="mt-3">
+            @csrf
+            <input type="hidden" name="alumno_id" id="alumno_id">
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-success">Agregar Alumno</button>
+                <a href="{{ route('alumnos.index') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
     </div>
 </div>
+
+<script>
+    document.getElementById('search-student-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: formData,
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Validaciones en el servidor
+                return response.json().then(errors => {
+                    if (errors.errors) {
+                        // Mostrar errores específicos de validación
+                        if (errors.errors.correo_institucional) {
+                            alert(errors.errors.correo_institucional.join('\n'));
+                        }
+                        if (errors.errors.numero_cuenta) {
+                            alert(errors.errors.numero_cuenta.join('\n'));
+                        }
+                    } else if (errors.error) {
+                        // Error genérico (ej. alumno no encontrado)
+                        alert(errors.error);
+                    }
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && !data.error) {
+                // Mostrar datos del alumno en la tabla
+                document.getElementById('alumno_id').value = data.id;
+                document.getElementById('nombre').textContent = data.nombre;
+                document.getElementById('apellidos').textContent = data.apellidos;
+                document.getElementById('semestre').textContent = data.semestre;
+
+                document.getElementById('student-info').classList.remove('d-none');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>
 @endsection

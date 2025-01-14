@@ -20,6 +20,11 @@ class CreateGruposTable extends Migration
             $table->timestamps();
         
             $table->foreign('materia_id')->references('id')->on('materias');
+
+            $table->unique(['grupo_id', 'materia_id'], 'unique_grupo_materia');
+
+            $table->unique(['nombre_grupo', 'materia_id']);
+
         });
         
     }

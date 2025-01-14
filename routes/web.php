@@ -56,3 +56,6 @@ Route::middleware('auth')->group(function () {
 Route::get('/', function () {
     return view('auth.login');
 });
+
+Route::post('/alumnos/search', [AlumnoController::class, 'search'])->name('alumnos.search');
+Route::post('/alumnos/add', [AlumnoController::class, 'add'])->name('alumnos.add');

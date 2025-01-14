@@ -21,15 +21,24 @@ class GrupoController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'nombre_grupo' => 'required|string|max:255',
-            'materia_id' => 'required|exists:materias,id',
-        ]);
+{
+    $request->validate([
+        'nombre_grupo' => 'required|string|regex:/^[a-zA-Z0-9\s\-]+$/|max:15|unique:grupos,nombre_grupo',
+        'materia_id' => 'required|exists:materias,id',
+    ], [
+        'nombre_grupo.required' => 'El nombre del grupo es obligatorio.',
+        'nombre_grupo.regex' => 'El nombre del grupo solo puede contener letras, números, espacios y guiones.',
+        'nombre_grupo.max' => 'El nombre del grupo no puede exceder los 15 caracteres.',
+        'nombre_grupo.unique' => 'El nombre del grupo ya está registrado.',
+        'materia_id.required' => 'Debe seleccionar una materia.',
+        'materia_id.exists' => 'La materia seleccionada no es válida.',
+    ]);
 
-        Grupo::create($request->all()); 
-        return redirect()->route('grupos.index')->with('success', 'Grupo creado exitosamente.');
-    }
+    Grupo::create($request->all());
+
+    return redirect()->route('grupos.index')->with('success', 'Grupo creado exitosamente.');
+}
+
 
     public function edit(Grupo $grupo)
     {
@@ -51,15 +60,24 @@ class GrupoController extends Controller
     }
 
     public function update(Request $request, Grupo $grupo)
-    {
-        $request->validate([
-            'nombre_grupo' => 'required|string|max:255',
-            'materia_id' => 'required|exists:materias,id',
-        ]);
+{
+    $request->validate([
+        'nombre_grupo' => 'required|string|regex:/^[a-zA-Z0-9\s\-]+$/|max:15|unique:grupos,nombre_grupo,' . $grupo->id . ',id,materia_id,' . $request->materia_id,
+        'materia_id' => 'required|exists:materias,id',
+    ], [
+        'nombre_grupo.required' => 'El nombre del grupo es obligatorio.',
+        'nombre_grupo.regex' => 'El nombre del grupo solo puede contener letras, números, espacios y guiones.',
+        'nombre_grupo.max' => 'El nombre del grupo no puede exceder los 15 caracteres.',
+        'nombre_grupo.unique' => 'El grupo ya está registrado para esta materia.',
+        'materia_id.required' => 'Debe seleccionar una materia.',
+        'materia_id.exists' => 'La materia seleccionada no es válida.',
+    ]);
 
-        $grupo->update($request->all()); 
-        return redirect()->route('grupos.index')->with('success', 'Grupo actualizado exitosamente.');
-    }
+    $grupo->update($request->all());
+
+    return redirect()->route('grupos.index')->with('success', 'Grupo actualizado exitosamente.');
+}
+
 
     public function show(Grupo $grupo)
     {
