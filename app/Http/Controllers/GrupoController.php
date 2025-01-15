@@ -6,14 +6,25 @@ use App\Models\Grupo;
 use App\Models\Materia;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+
 
 
 class GrupoController extends Controller
 {
     public function index()
     {
-        $grupos = Grupo::with('materia')->get(); 
-        return view('grupos.index', compact('grupos'));
+        //$grupos = Grupo::with('materia')->get();
+        $user_prof=Auth::user()->name;
+        $grupos = DB::table('grupos')
+        ->join('materias', 'grupos.materia_id', '=', 'materias.id')
+        ->join('users', 'materias.user_id', '=', 'users.id')
+        ->select('grupos.id', 'grupos.nombre_grupo', 'materias.nombre', 'users.name')
+        ->where('users.name',$user_prof)
+        ->get(); 
+        
+        return view('grupos.index', compact('grupos','user_prof'));
     }
 
     public function create()

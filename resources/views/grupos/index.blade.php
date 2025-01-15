@@ -14,6 +14,7 @@
             <th>ID</th>
             <th>Nombre del Grupo</th>
             <th>Materia</th>
+            <th>profesor</th>
             <th>Acciones</th>
         </tr>
     </thead>
@@ -22,7 +23,8 @@
         <tr>
             <td>{{ $grupo->id }}</td>
             <td>{{ $grupo->nombre_grupo }}</td>
-            <td>{{ $grupo->materia->nombre }}</td>
+            <td>{{ $grupo->nombre }}</td>
+            <td>{{ $grupo->name }}</td>
             <td>
                 <a href="{{ route('grupos.show', $grupo->id) }}" class="btn btn-info btn-sm" >Detalles</a>
                 <a href="{{ route('grupos.edit', $grupo->id) }}" class="btn btn-warning btn-sm" >Editar</a>

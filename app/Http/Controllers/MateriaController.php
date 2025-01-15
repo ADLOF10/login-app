@@ -5,13 +5,24 @@ namespace App\Http\Controllers;
 use App\Models\Materia;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+
 
 class MateriaController extends Controller
 {
     public function index()
     {
-        $materias = Materia::with('docente')->get();
-        return view('materias.index', compact('materias'));
+       // $materias = Materia::with('docente')->get();
+
+        $user_prof=Auth::user()->name;
+        $materias = DB::table('materias')
+        ->join('users', 'materias.user_id', '=', 'users.id')
+        ->select('materias.id', 'materias.nombre', 'materias.clave', 'users.name')
+        ->where('users.name',$user_prof)
+        ->get(); 
+
+        return view('materias.index', compact('materias','user_prof'));
         
     }
 
