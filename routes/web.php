@@ -60,5 +60,7 @@ Route::get('/', function () {
 Route::post('/alumnos/search', [AlumnoController::class, 'search'])->name('alumnos.search');
 Route::post('/alumnos/add', [AlumnoController::class, 'add'])->name('alumnos.add');
 
+
+
 Route::post('/grupos/{grupo}/remove-alumno', [GrupoController::class, 'removeAlumno'])->name('grupos.remove-alumno');
 

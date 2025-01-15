@@ -6,6 +6,12 @@
 <div class="container mt-4">
     <h1 class="mb-4">Registrar Nuevo Alumno</h1>
 
+    @if ($errors->has('error'))
+        <div class="alert alert-danger">
+            {{ $errors->first('error') }}
+        </div>
+    @endif
+
     <!-- Formulario para buscar al alumno -->
     <form id="search-student-form" action="{{ route('alumnos.search') }}" method="POST" class="card p-4 shadow">
         @csrf
@@ -51,7 +57,6 @@
         </div>
     </form>
 
-    <!-- Información del alumno encontrado -->
     <div id="student-info" class="mt-4 d-none">
         <h2 class="mb-3">Información del Alumno</h2>
         <table class="table table-bordered">
@@ -69,26 +74,31 @@
                     <td id="apellidos"></td>
                     <td id="semestre"></td>
                     <td>
-                        <select name="grupo_id" id="grupo_id" class="form-select" required>
-                            <option value="">Selecciona un grupo</option>
-                            @foreach($grupos as $grupo)
-                            <option value="{{ $grupo->id }}">{{ $grupo->nombre_grupo }}</option>
-                            @endforeach
-                        </select>
+                        <form id="add-student-form" action="{{ route('alumnos.add') }}" method="POST" class="mt-3">
+                            @csrf
+                            <input type="hidden" name="alumno_id" id="alumno_id">
+                            <div class="mb-3">
+                                <label for="grupo_id" class="form-label">Grupo:</label>
+                                <select name="grupo_id" id="grupo_id" class="form-select" required>
+                                    <option value="">Selecciona un grupo</option>
+                                    @foreach($grupos as $grupo)
+                                    <option value="{{ $grupo->id }}">{{ $grupo->nombre_grupo }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-success">Agregar Alumno</button>
+                                <a href="{{ route('alumnos.index') }}" class="btn btn-secondary">Cancelar</a>
+                            </div>
+                        </form>
+                        
                     </td>
                 </tr>
             </tbody>
         </table>
-        <form id="add-student-form" action="{{ route('alumnos.add') }}" method="POST" class="mt-3">
-            @csrf
-            <input type="hidden" name="alumno_id" id="alumno_id">
-            <div class="d-flex justify-content-between">
-                <button type="submit" class="btn btn-success">Agregar Alumno</button>
-                <a href="{{ route('alumnos.index') }}" class="btn btn-secondary">Cancelar</a>
-            </div>
-        </form>
     </div>
-</div>
+    
+
 
 <script>
     document.getElementById('search-student-form').addEventListener('submit', function(event) {

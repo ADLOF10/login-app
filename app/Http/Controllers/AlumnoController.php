@@ -46,20 +46,40 @@ class AlumnoController extends Controller
         return response()->json($alumno);
     }
 
+    // public function add(Request $request)
+    // {
+    //     $request->validate([
+    //         'grupo_id' => 'required|exists:grupos,id',
+    //         'alumno_id' => 'required|exists:alumnos,id',
+    //     ]);
+
+    //     $grupo = Grupo::findOrFail($request->grupo_id);
+    //     $grupo->alumnos()->attach($request->alumno_id);
+
+    //     return redirect()->route('grupos.index')->with('success', 'Alumno agregado al grupo exitosamente.');
+    // }
+
     public function add(Request $request)
     {
+        Log::info('Datos recibidos en el formulario:', $request->all());
+
         $request->validate([
-            'grupo_id' => 'required|exists:grupos,id',
             'alumno_id' => 'required|exists:alumnos,id',
+            'grupo_id' => 'required|exists:grupos,id',
         ]);
 
         $grupo = Grupo::findOrFail($request->grupo_id);
+
+        if ($grupo->alumnos()->where('alumnos.id', $request->alumno_id)->exists()) {
+            return back()->withErrors(['error' => 'El alumno ya está asignado a este grupo.']);
+        }
+
         $grupo->alumnos()->attach($request->alumno_id);
 
-        return redirect()->route('grupos.index')->with('success', 'Alumno agregado al grupo exitosamente.');
+        return redirect()->route('grupos.show', $grupo->id)->with('success', 'Alumno agregado al grupo exitosamente.');
     }
 
-    
+
 
     public function index()
     {

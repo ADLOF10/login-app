@@ -19,8 +19,8 @@ class CreateGrupoAlumnoTable extends Migration
             $table->unsignedBigInteger('alumno_id');
             $table->timestamps();
         
-            $table->foreign('grupo_id')->references('id')->on('grupos');
-            $table->foreign('alumno_id')->references('id')->on('alumnos');
+            $table->foreign('grupo_id')->references('id')->on('grupos')->onDelete('cascade');
+            $table->foreign('alumno_id')->references('id')->on('alumnos')->onDelete('cascade');
         });
         
     }

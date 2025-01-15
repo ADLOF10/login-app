@@ -20,7 +20,7 @@
         <input 
             type="text" 
             id="search-alumnos-grupo" 
-            class="form-control" 
+            class="form-control mb-2" 
             placeholder="Buscar alumnos en este grupo..."
         >
     </div>
@@ -93,14 +93,25 @@
 </div>
 
 <script>
-    // Función para permitir solo números y letras
+    // Función para permitir solo letras, números y espacios
     function allowAlphanumeric(input) {
-        input.value = input.value.replace(/[^a-zA-Z0-9]/g, '');
+        input.value = input.value.replace(/[^a-zA-Z0-9\s]/g, '');
     }
 
-    // Filtrar alumnos en este grupo
-    document.getElementById('search-alumnos-grupo').addEventListener('input', function() {
-        allowAlphanumeric(this);
+    // Filtrar alumnos en el selector "Asignar alumnos"
+    document.getElementById('search-alumnos-asignar').addEventListener('input', function () {
+        allowAlphanumeric(this); // Limita la entrada
+        const filter = this.value.toLowerCase();
+        const options = document.querySelectorAll('#alumnos option');
+        options.forEach(option => {
+            const text = option.textContent.toLowerCase();
+            option.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+
+    // Filtrar alumnos en la tabla "Alumnos en este grupo"
+    document.getElementById('search-alumnos-grupo').addEventListener('input', function () {
+        allowAlphanumeric(this); // Limita la entrada
         const filter = this.value.toLowerCase();
         const rows = document.querySelectorAll('#alumnos-grupo-table tbody tr');
         rows.forEach(row => {
@@ -109,20 +120,9 @@
         });
     });
 
-    // Filtrar alumnos en el selector múltiple
-    document.getElementById('search-alumnos-asignar').addEventListener('input', function() {
-        allowAlphanumeric(this);
-        const filter = this.value.toLowerCase();
-        const opciones = document.querySelectorAll('#alumnos option');
-        opciones.forEach(opcion => {
-            const text = opcion.textContent.toLowerCase();
-            opcion.style.display = text.includes(filter) ? '' : 'none';
-        });
-    });
-
     // Eliminar alumnos del grupo dinámicamente
     document.querySelectorAll('.remove-alumno').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const alumnoId = this.dataset.alumnoId;
             const nombre = this.dataset.alumnoNombre;
             const correo = this.dataset.alumnoCorreo;
@@ -135,29 +135,29 @@
                 },
                 body: JSON.stringify({ alumno_id: alumnoId }),
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Eliminar de la tabla
-                    const row = document.querySelector(`#alumnos-grupo-table tbody tr[data-alumno-id="${alumnoId}"]`);
-                    row.remove();
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Eliminar fila de la tabla "Alumnos en este grupo"
+                        const row = document.querySelector(`#alumnos-grupo-table tbody tr[data-alumno-id="${alumnoId}"]`);
+                        row.remove();
 
-                    // Verificar si ya no hay alumnos en la tabla
-                    const remainingRows = document.querySelectorAll('#alumnos-grupo-table tbody tr');
-                    if (remainingRows.length === 0) {
-                        document.getElementById('alumnos-grupo-table').classList.add('d-none');
-                        document.getElementById('no-alumnos-message').classList.remove('d-none');
+                        // Verificar si no hay más filas
+                        const remainingRows = document.querySelectorAll('#alumnos-grupo-table tbody tr');
+                        if (remainingRows.length === 0) {
+                            document.getElementById('alumnos-grupo-table').classList.add('d-none');
+                            document.getElementById('no-alumnos-message').classList.remove('d-none');
+                        }
+
+                        // Agregar alumno eliminado al selector "Asignar alumnos"
+                        const select = document.getElementById('alumnos');
+                        const option = document.createElement('option');
+                        option.value = alumnoId;
+                        option.textContent = `${nombre} - ${correo}`;
+                        select.appendChild(option);
                     }
-
-                    // Agregar al selector múltiple
-                    const select = document.getElementById('alumnos');
-                    const option = document.createElement('option');
-                    option.value = alumnoId;
-                    option.textContent = `${nombre} - ${correo}`;
-                    select.appendChild(option);
-                }
-            })
-            .catch(error => console.error('Error:', error));
+                })
+                .catch(error => console.error('Error:', error));
         });
     });
 </script>
