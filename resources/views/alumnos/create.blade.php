@@ -7,7 +7,7 @@
     <h1 class="mb-4">Registrar Nuevo Alumno</h1>
 
     @if ($errors->has('error'))
-        <div class="alert alert-danger">
+        <div id="error-message" class="alert alert-danger">
             {{ $errors->first('error') }}
         </div>
     @endif
@@ -97,10 +97,19 @@
             </tbody>
         </table>
     </div>
-    
-
+</div>
 
 <script>
+    // Ocultar el mensaje de error después de 10 segundos
+    document.addEventListener('DOMContentLoaded', function () {
+        const errorMessage = document.getElementById('error-message');
+        if (errorMessage) {
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000); // 10 segundos
+        }
+    });
+
     document.getElementById('search-student-form').addEventListener('submit', function(event) {
         event.preventDefault();
 

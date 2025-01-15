@@ -80,4 +80,24 @@ class QrCodeController extends Controller
         $qrCode->delete(); 
         return redirect()->route('qr_codes.index')->with('success', 'Código QR eliminado exitosamente.');
     }
+
+    public function getMateriaByGrupo(Request $request)
+    {
+        $grupoId = $request->input('grupo_id');
+    
+        $grupo = \App\Models\Grupo::find($grupoId);
+    
+        if (!$grupo) {
+            return response()->json(['error' => 'Grupo no encontrado'], 404);
+        }
+    
+        $materia = $grupo->materia;
+    
+        return response()->json([
+            'materia_id' => $materia->id,
+            'materia_nombre' => $materia->nombre,
+        ]);
+    }
+    
+
 }
