@@ -8,13 +8,24 @@ use App\Models\Materia;
 use Illuminate\Http\Request;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class QrCodeController extends Controller
 {
     public function index()
     {
-        $qrCodes = QrCode::with('grupo', 'materia')->get(); 
-        return view('qr_codes.index', compact('qrCodes'));
+        //$qrCodes = QrCode::with('grupo', 'materia')->get(); 
+        $user_prof=Auth::user()->name;
+        $qrCodes = DB::table('qr_codes')
+        ->join('grupos', 'qr_codes.grupo_id', '=', 'grupos.id')
+        ->join('materias', 'qr_codes.materia_id', '=', 'materias.id')
+        ->join('users', 'materias.user_id', '=', 'users.id')
+        ->select('qr_codes.*','grupos.nombre_grupo','materias.nombre')
+        ->where('users.name',$user_prof)
+        ->get();
+
+        return view('qr_codes.index', compact('qrCodes','user_prof'));
     }
 
     public function create()

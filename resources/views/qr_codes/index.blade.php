@@ -29,8 +29,8 @@
             @foreach($qrCodes as $qrCode)
             <tr>
                 <td>{{ $qrCode->id }}</td>
-                <td>{{ $qrCode->grupo->nombre_grupo }}</td>
-                <td>{{ $qrCode->materia->nombre }}</td>
+                <td>{{ $qrCode->nombre_grupo }}</td>
+                <td>{{ $qrCode->nombre }}</td>
                 <td>{{ $qrCode->fecha_clase }}</td> 
                 <td>{{ $qrCode->hora_clase }}</td>
                 <td>{{ ucfirst($qrCode->tipo) }}</td>

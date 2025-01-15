@@ -29,8 +29,14 @@ class GrupoController extends Controller
 
     public function create()
     {
-        $materias = Materia::all(); 
-        return view('grupos.create', compact('materias'));
+       // $materias = Materia::all(); 
+       $user_prof=Auth::user()->name;
+        $materias = DB::table('materias')
+        ->join('users', 'materias.user_id', '=', 'users.id')
+        ->select('materias.id','materias.nombre')
+        ->where('users.name',$user_prof)
+        ->get();
+        return view('grupos.create', compact('materias','user_prof'));
     }
 
     public function store(Request $request)
