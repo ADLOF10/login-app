@@ -28,9 +28,9 @@
     @foreach($asistencias as $asistencia)
     <tr>
         <td>{{ $asistencia->id }}</td>
-        <td>{{ $asistencia->alumno->nombre }} {{ $asistencia->alumno->apellidos }}</td>
-        <td>{{ $asistencia->grupo->nombre_grupo }}</td>
-        <td>{{ $asistencia->materia->nombre }}</td> 
+        <td>{{ $asistencia->nombre }} {{ $asistencia->apellidos }}</td>
+        <td>{{ $asistencia->nombre_grupo }}</td>
+        <td>{{ $asistencia->nombre_materia }}</td> 
         <td>{{ $asistencia->fecha_clase }}</td> 
         <td>{{ $asistencia->hora_clase }}</td> 
         <td>{{ $asistencia->fecha }}</td>

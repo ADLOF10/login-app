@@ -7,13 +7,24 @@ use App\Models\Asistencia;
 use App\Models\Alumno;
 use App\Models\Grupo;
 use App\Models\QrCode;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class AsistenciaController extends Controller
 {
      
      public function index()
      {
-         $asistencias = Asistencia::with('alumno', 'grupo')->get();
+         //$asistencias = Asistencia::with('alumno', 'grupo')->get();
+        // $user_prof=Auth::user()->name;
+         $asistencias = DB::table('asistencias')
+         ->join('alumnos', 'asistencias.alumno_id', '=', 'alumnos.id')
+         ->join('grupos', 'asistencias.grupo_id', '=', 'grupos.id')
+         ->join('materias', 'asistencias.materia_id', '=', 'materias.id')
+         ->select('asistencias.*', 'alumnos.nombre','alumnos.apellidos','grupos.nombre_grupo', 'materias.nombre as nombre_materia')
+         //->where('users.name',$user_prof)
+         ->get(); 
+
          return view('asistencias.index', compact('asistencias'));
      }
 
