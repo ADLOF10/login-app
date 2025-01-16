@@ -11,20 +11,23 @@ use Illuminate\Support\Facades\Auth;
 
 class MateriaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-       // $materias = Materia::with('docente')->get();
+        $search = $request->input('search');
 
-        $user_prof=Auth::user()->name;
-        $materias = DB::table('materias')
-        ->join('users', 'materias.user_id', '=', 'users.id')
-        ->select('materias.id', 'materias.nombre', 'materias.clave', 'users.name')
-        ->where('users.name',$user_prof)
-        ->get(); 
+        $materias = Materia::with('docente')
+            ->when($search, function ($query) use ($search) {
+                $query->where('nombre', 'like', "%{$search}%")
+                    ->orWhere('clave', 'like', "%{$search}%")
+                    ->orWhereHas('docente', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            })
+            ->get();
 
-        return view('materias.index', compact('materias','user_prof'));
-        
+        return view('materias.index', compact('materias'));
     }
+
 
     public function create()
     {
