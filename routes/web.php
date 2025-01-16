@@ -66,3 +66,4 @@ Route::post('/api/materia-by-grupo', [QrCodeController::class, 'getMateriaByGrup
 Route::post('/grupos/{grupo}/remove-alumno', [GrupoController::class, 'removeAlumno'])->name('grupos.remove-alumno');
 
 
+

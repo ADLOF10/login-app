@@ -295,42 +295,45 @@ class AlumnoController extends Controller
     
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'correo_institucional' => [
-                'required',
-                'email',
-                'regex:/^[a-zA-Z0-9._%+-]+@alumno\.uaemex\.wip$/',
-                'unique:alumnos,correo_institucional', // Validar correo único
-                'unique:users,email', // Validar correo único en usuarios
-            ],
-            'numero_cuenta' => 'required|digits:7|unique:alumnos,numero_cuenta', // Validar número de cuenta único
-            'semestre' => 'nullable|string|max:10',
-            'foto_perfil' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ], [
-            'correo_institucional.regex' => 'El correo debe tener el formato @alumno.uaemex.wip',
-            'numero_cuenta.digits' => 'El número de cuenta debe tener exactamente 7 dígitos.',
-            'numero_cuenta.unique' => 'El número de cuenta ya está registrado.',
-            'correo_institucional.unique' => 'El correo institucional ya está registrado.',
-        ]);
+{
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'apellidos' => 'required|string|max:255',
+        'correo_institucional' => [
+            'required',
+            'email',
+            'regex:/^[a-zA-Z0-9._%+-]+@alumno\.uaemex\.wip$/',
+            'unique:alumnos,correo_institucional',
+            'unique:users,email',
+        ],
+        'numero_cuenta' => 'required|digits:7|unique:alumnos,numero_cuenta',
+        'semestre' => 'nullable|string|max:10',
+        'real_email' => 'required|email|unique:users,real_email',
+    ]);
 
-        $fotoPerfil = $request->hasFile('foto_perfil')
-            ? $request->file('foto_perfil')->store('fotos_perfil', 'public')
-            : 'fotos_perfil/default.png';
+    // Crear el registro en la tabla alumnos
+    $alumno = Alumno::create([
+        'nombre' => $request->nombre,
+        'apellidos' => $request->apellidos,
+        'correo_institucional' => $request->correo_institucional,
+        'numero_cuenta' => $request->numero_cuenta,
+        'semestre' => $request->semestre,
+    ]);
 
-        Alumno::create([
-            'nombre' => $request->nombre,
-            'apellidos' => $request->apellidos,
-            'correo_institucional' => $request->correo_institucional,
-            'numero_cuenta' => $request->numero_cuenta,
-            'semestre' => $request->semestre,
-            'foto_perfil' => $fotoPerfil,
-        ]);
+    // Crear el registro en la tabla users con la contraseña por defecto
+    User::create([
+        'name' => $request->nombre . ' ' . $request->apellidos,
+        'email' => $request->correo_institucional,
+        'real_email' => $request->real_email,
+        'password' => bcrypt('Wip1234$'), // Contraseña predeterminada encriptada
+        'role' => 'alumno',
+        'alumno_id' => $alumno->id,
+    ]);
 
-        return redirect()->route('alumnos.index')->with('success', 'Alumno registrado exitosamente.');
-    }
+    return redirect()->route('alumnos.index')->with('success', 'Alumno registrado exitosamente con la contraseña predeterminada.');
+}
+
+    
 
 
 
@@ -407,4 +410,26 @@ class AlumnoController extends Controller
         $alumno->delete(); 
         return redirect()->route('alumnos.index')->with('success', 'Alumno eliminado exitosamente.');
     }
+    public function updatePassword(Request $request)
+    {
+        // Validar los datos recibidos
+        $request->validate([
+            'email' => 'required|email',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        // Verificar si el usuario autenticado coincide con el email proporcionado
+        $user = Auth::user();
+        if ($user->email !== $request->email) {
+            return response()->json(['message' => 'Email no autorizado'], 403);
+        }
+
+        // Actualizar la contraseña
+        $user->update([
+            'password' => Hash::make($request->new_password),
+        ]);
+
+        return response()->json(['message' => 'Contraseña actualizada exitosamente'], 200);
+    }
+
 }

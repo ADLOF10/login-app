@@ -35,7 +35,7 @@
                 <td>{{ $materia->id }}</td>
                 <td>{{ $materia->nombre }}</td>
                 <td>{{ $materia->clave }}</td>
-                <td>{{ $materia->name }}</td>
+                <td>{{ $materia->docente->name }}</td> <!-- Accede al nombre del docente -->
                 <td>
                     <a href="{{ route('materias.show', $materia->id) }}" class="btn btn-info btn-sm">Ver</a>
                     <a href="{{ route('materias.edit', $materia->id) }}" class="btn btn-warning btn-sm">Editar</a>
@@ -47,7 +47,7 @@
                 </td>
             </tr>
             @endforeach
-        </tbody>
+        </tbody>        
     </table>
 </div>
 

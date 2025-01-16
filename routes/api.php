@@ -6,7 +6,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AlumnoProfileController;
 use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\AsistenciaController;
-
+use App\Http\Controllers\PasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +20,10 @@ use App\Http\Controllers\AsistenciaController;
 */
 
 Route::post('/login', [LoginController::class, 'login']);
+
+Route::get('/password/{email}', [PasswordController::class, 'getPassword']);
+
+Route::post('/password/update', [PasswordController::class, 'updatePassword']);
 
 Route::middleware(['auth:sanctum', 'role:alumno'])->get('/grupos-asignados', [AlumnoProfileController::class, 'getGruposAsignados']);
 
