@@ -30,8 +30,15 @@ class QrCodeController extends Controller
 
     public function create()
     {
-        $grupos = Grupo::all(); 
-        $materias = Materia::all(); 
+        //$grupos = Grupo::all('materias'); 
+        $userId = Auth::id();
+        $grupos = Grupo::with('materia')
+            ->whereHas('materia', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->get();
+          
+            $materias = Materia::where('user_id', $userId)->get();
         return view('qr_codes.create', compact('grupos', 'materias')); 
     }
 

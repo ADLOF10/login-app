@@ -24,7 +24,7 @@
                 <td>{{ $materia->id }}</td>
                 <td>{{ $materia->nombre }}</td>
                 <td>{{ $materia->clave }}</td>
-                <td>{{ $materia->name }}</td>
+                <td>{{ Auth::user()->name }}</td>
                 <td>
                     <a href="{{ route('materias.show', $materia->id) }}" class="btn btn-info btn-sm">Ver</a>
                     <a href="{{ route('materias.edit', $materia->id) }}" class="btn btn-warning btn-sm">Editar</a>
