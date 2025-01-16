@@ -15,6 +15,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Grupo;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Illuminate\Support\Facades\Hash;
+
 
 class AlumnoController extends Controller
 {
@@ -307,24 +309,34 @@ class AlumnoController extends Controller
             'unique:users,email',
         ],
         'numero_cuenta' => 'required|digits:7|unique:alumnos,numero_cuenta',
-        'semestre' => 'nullable|string|max:10',
-        'real_email' => 'required|email|unique:users,real_email',
+        'semestre' => [
+            'nullable',
+            'string',
+            'max:10',
+            'regex:/^[a-zA-Z0-9\s]+$/', // Permite letras, números y espacios solamente
+        ],
+    ], [
+        'correo_institucional.regex' => 'El correo institucional debe tener el formato usuario@alumno.uaemex.wip.',
+        'semestre.regex' => 'El campo semestre no puede contener caracteres especiales.',
     ]);
 
-    // Crear el registro en la tabla alumnos
+    // Obtener el ID del profesor autenticado
+    $profesorId = Auth::id();
+
+    // Crear el registro en la tabla alumnos con el ID del profesor
     $alumno = Alumno::create([
         'nombre' => $request->nombre,
         'apellidos' => $request->apellidos,
         'correo_institucional' => $request->correo_institucional,
         'numero_cuenta' => $request->numero_cuenta,
         'semestre' => $request->semestre,
+        'user_id' => $profesorId, // Vincula al alumno con el profesor autenticado
     ]);
 
     // Crear el registro en la tabla users con la contraseña por defecto
     User::create([
         'name' => $request->nombre . ' ' . $request->apellidos,
         'email' => $request->correo_institucional,
-        'real_email' => $request->real_email,
         'password' => bcrypt('Wip1234$'), // Contraseña predeterminada encriptada
         'role' => 'alumno',
         'alumno_id' => $alumno->id,
@@ -332,6 +344,9 @@ class AlumnoController extends Controller
 
     return redirect()->route('alumnos.index')->with('success', 'Alumno registrado exitosamente con la contraseña predeterminada.');
 }
+
+
+
 
     
 
