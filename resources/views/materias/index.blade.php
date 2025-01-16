@@ -8,17 +8,6 @@
         <h1>Materias</h1>
         <a href="{{ route('materias.create') }}" class="btn btn-success-custom">Registrar Nueva Materia</a>
     </div>
-    <form id="search-form" action="{{ route('materias.index') }}" method="GET" class="mb-3 d-flex">
-        <input 
-            type="text" 
-            name="search" 
-            id="search-input"
-            class="form-control me-2" 
-            placeholder="Buscar por nombre o clave..." 
-            value="{{ request('search') }}"
-        >
-        <a href="{{ route('materias.index') }}" class="btn btn-secondary">Limpiar</a>
-    </form>
     <table class="table table-striped table-bordered">
         <thead class="text-white" style="background-color: #004d40;">
             <tr>
@@ -50,15 +39,4 @@
         </tbody>
     </table>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = document.getElementById('search-input');
-        const searchForm = document.getElementById('search-form');
-
-        searchInput.addEventListener('input', function () {
-            searchForm.submit();
-        });
-    });
-</script>
 @endsection
