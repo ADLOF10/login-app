@@ -8,6 +8,9 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Lista de Asistencias de este alumno</h1>
+        <td>
+            <a href="{{ route('asistencias.index') }}" class="btn btn-info btn-sm" >Regresar</a>
+        </td>
         
         </div>
         <table class="table table-striped table-bordered">
@@ -23,7 +26,6 @@
                 <th>Hora de Registro</th>
                 <th>Tipo</th>
                 <th>Estado</th>
-                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -39,16 +41,11 @@
                 <td>{{ $asistencia->hora_registro }}</td>
                 <td>{{ ucfirst($asistencia->tipo) }}</td>
                 <td>{{ ucfirst($asistencia->estado) }}</td>
-                <td>
-                    <form action="{{ route('asistencias.destroy', $asistencia->id) }}" method="POST" style="display:inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                    </form>
-                </td>
             </tr>
             @endforeach
         </tbody>
+       
+
         </table>
         </div>
 

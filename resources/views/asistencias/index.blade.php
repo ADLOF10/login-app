@@ -23,7 +23,7 @@
         <tr>
             <td>{{ $grupo->id }}</td>
             <td>{{ $grupo->nombre_grupo }}</td>
-            <td>{{ $grupo->materia_id }}</td>
+            <td>{{ $grupo->materia->nombre }}</td>
             <td>
                 <a href="{{ route('alum.asis', $grupo->id) }}" class="btn btn-info btn-sm" >Detalles</a>
                 

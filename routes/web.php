@@ -50,8 +50,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/grupos/{grupo}/assign-alumnos', [GrupoController::class, 'assignAlumnos'])->name('grupos.assign-alumnos');
     Route::resource('qr_codes', QrCodeController::class);
     Route::resource('materias', MateriaController::class);
-    Route::get('/asis/{grupo}', [GrupoController::class, 'showAsisAlum'])->name('alum.asis');
-    Route::get('/listAlumasis/hola/{id}', [GrupoController::class, 'showAsisLisAlum'])->name('alumListaasis');
+    Route::get('/asis/{grupo}', [AsistenciaController::class, 'showAsisAlum'])->name('alum.asis');
+    Route::get('/listAlumasis/hola/{id}', [AsistenciaController::class, 'showAsisLisAlum'])->name('alumListaasis');
     
 });
 

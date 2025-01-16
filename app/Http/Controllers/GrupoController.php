@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Alumno;
 use App\Models\Asistencia;
-
-
+use App\Models\GrupoAlumno;
 
 class GrupoController extends Controller
 {
@@ -112,21 +111,8 @@ class GrupoController extends Controller
         return view('grupos.show', compact('grupo', 'alumnos'));
     }
 
-    public function showAsisAlum(Grupo $grupo)
-    {
-        $grupo->load('materia', 'alumnos');
-        $alumnos = Alumno::all(); 
-        return view('asistencias.alumAsis', compact('grupo', 'alumnos'));
-    }
-    public function showAsisLisAlum($id)
-    {
-
-        
-        $asistencias = Asistencia::all();
-        $alumnos = Alumno::all(); 
-        return view('asistencias.alumAsisLista', compact( 'asistencias','alumnos'));
-    }
     
+   
     public function destroy(Grupo $grupo)
     {
         $grupo->delete(); 

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Asistencia;
 use App\Models\Alumno;
 use App\Models\Grupo;
+use App\Models\GrupoAlumno;
 use App\Models\QrCode;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,15 +15,38 @@ class AsistenciaController extends Controller
      
      public function index()
      {
-         $asistencias = Asistencia::with('alumno', 'grupo')->get();
          $userId = Auth::id();
          $grupos = Grupo::with('materia')
             ->whereHas('materia', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
             })
             ->get();
-         return view('asistencias.index', compact('asistencias','grupos'));
+         return view('asistencias.index', compact('grupos'));
      }
+
+     public function showAsisAlum($grupo)
+    {
+        
+        $alumnos = GrupoAlumno::with(['alumno', 'grupo'])
+        ->where('grupo_id', $grupo)
+        ->get();
+
+        return view('asistencias.alumAsis', compact( 'alumnos'));
+    }
+
+    public function showAsisLisAlum($id)
+    { 
+        
+        $asistencias = Asistencia::where('alumno_id', $id)
+        ->with(['alumno', 'grupo', 'materia'])
+        ->get();
+        $regresarAlumno = $asistencias->isNotEmpty() ? $asistencias->first()->grupo->nombre : 'Alumno no encontrado';
+
+    
+
+        return view('asistencias.alumAsisLista', compact( 'id','asistencias','regresarAlumno'));
+    }
+    
 
      public function verificarAsistencia(Request $request)
      {
