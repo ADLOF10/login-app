@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Alumno;
+use App\Models\Asistencia;
 
 
 
@@ -108,6 +110,21 @@ class GrupoController extends Controller
         $grupo->load('materia', 'alumnos');
         $alumnos = \App\Models\Alumno::all(); 
         return view('grupos.show', compact('grupo', 'alumnos'));
+    }
+
+    public function showAsisAlum(Grupo $grupo)
+    {
+        $grupo->load('materia', 'alumnos');
+        $alumnos = Alumno::all(); 
+        return view('asistencias.alumAsis', compact('grupo', 'alumnos'));
+    }
+    public function showAsisLisAlum($id)
+    {
+
+        
+        $asistencias = Asistencia::all();
+        $alumnos = Alumno::all(); 
+        return view('asistencias.alumAsisLista', compact( 'asistencias','alumnos'));
     }
     
     public function destroy(Grupo $grupo)

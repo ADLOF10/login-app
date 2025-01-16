@@ -7,6 +7,7 @@ use App\Models\Asistencia;
 use App\Models\Alumno;
 use App\Models\Grupo;
 use App\Models\QrCode;
+use Illuminate\Support\Facades\Auth;
 
 class AsistenciaController extends Controller
 {
@@ -14,7 +15,13 @@ class AsistenciaController extends Controller
      public function index()
      {
          $asistencias = Asistencia::with('alumno', 'grupo')->get();
-         return view('asistencias.index', compact('asistencias'));
+         $userId = Auth::id();
+         $grupos = Grupo::with('materia')
+            ->whereHas('materia', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->get();
+         return view('asistencias.index', compact('asistencias','grupos'));
      }
 
      public function verificarAsistencia(Request $request)
