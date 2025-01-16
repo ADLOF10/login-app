@@ -13,19 +13,24 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\Grupo;
-
-
-
+use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class AlumnoController extends Controller
 {
 
     public function create()
-{
-    $grupos = Grupo::all();
-    return view('alumnos.create', compact('grupos'));
-}
+    {
+        $userId = Auth::id(); // ID del profesor autenticado
+
+        // Filtrar grupos del profesor autenticado
+        $grupos = Grupo::whereHas('materia', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->get();
+
+        return view('alumnos.create', compact('grupos'));
+    }
+
 
 
     public function search(Request $request)
@@ -83,9 +88,13 @@ class AlumnoController extends Controller
 
     public function index()
     {
-        $alumnos = Alumno::with('asistenciasTotales')->get();
+        $userId = Auth::id(); // Obtener el ID del profesor autenticado
 
-       
+        // Obtener los alumnos relacionados con los grupos del profesor autenticado
+        $alumnos = Alumno::whereHas('grupos.materia', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->with('asistenciasTotales')->get();
+
         $totalAsistencias = 0;
         $totalRetardos = 0;
         $totalInasistencias = 0;
@@ -294,10 +303,10 @@ class AlumnoController extends Controller
                 'required',
                 'email',
                 'regex:/^[a-zA-Z0-9._%+-]+@alumno\.uaemex\.wip$/',
-                'unique:alumnos,correo_institucional',
-                'unique:users,email',
+                'unique:alumnos,correo_institucional', // Validar correo único
+                'unique:users,email', // Validar correo único en usuarios
             ],
-            'numero_cuenta' => 'required|digits:7|unique:alumnos,numero_cuenta',
+            'numero_cuenta' => 'required|digits:7|unique:alumnos,numero_cuenta', // Validar número de cuenta único
             'semestre' => 'nullable|string|max:10',
             'foto_perfil' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ], [
@@ -306,15 +315,12 @@ class AlumnoController extends Controller
             'numero_cuenta.unique' => 'El número de cuenta ya está registrado.',
             'correo_institucional.unique' => 'El correo institucional ya está registrado.',
         ]);
-        
 
-       
         $fotoPerfil = $request->hasFile('foto_perfil')
             ? $request->file('foto_perfil')->store('fotos_perfil', 'public')
-            : 'fotos_perfil/default.png'; 
+            : 'fotos_perfil/default.png';
 
-        
-        $alumno = Alumno::create([
+        Alumno::create([
             'nombre' => $request->nombre,
             'apellidos' => $request->apellidos,
             'correo_institucional' => $request->correo_institucional,
@@ -323,17 +329,9 @@ class AlumnoController extends Controller
             'foto_perfil' => $fotoPerfil,
         ]);
 
-        
-        User::create([
-            'name' => $alumno->nombre . ' ' . $alumno->apellidos,
-            'email' => $alumno->correo_institucional,
-            'password' => bcrypt($alumno->numero_cuenta),
-            'role' => 'alumno',
-            'alumno_id' => $alumno->id, 
-        ]);
-
         return redirect()->route('alumnos.index')->with('success', 'Alumno registrado exitosamente.');
     }
+
 
 
     public function getDetalles(Request $request)
