@@ -17,33 +17,62 @@ class QrCodeController extends Controller
     public function index()
     {
         $user_prof = Auth::user()->name;
+
         $qrCodes = DB::table('qr_codes')
             ->join('grupos', 'qr_codes.grupo_id', '=', 'grupos.id')
             ->join('materias', 'qr_codes.materia_id', '=', 'materias.id')
             ->join('users', 'materias.user_id', '=', 'users.id')
-            ->select('qr_codes.*', 'grupos.nombre_grupo as grupo_nombre', 'materias.nombre as materia_nombre')
+            ->select(
+                'qr_codes.*',
+                'grupos.nombre_grupo as grupo_nombre',
+                'materias.nombre as materia_nombre'
+            )
             ->where('users.name', $user_prof)
             ->get()
             ->map(function ($qrCode) {
                 // Convertir created_at y cualquier otro campo necesario en instancias de Carbon
                 $qrCode->created_at = Carbon::parse($qrCode->created_at);
+
+                // Calcular campo expira
+                $expira = Carbon::parse("{$qrCode->fecha_clase} {$qrCode->hora_clase}")
+                    ->addMinutes($qrCode->asistencia + $qrCode->retardo + $qrCode->inasistencia);
+                $qrCode->expira = $expira->format('Y-m-d H:i:s');
+
                 return $qrCode;
             });
 
         return view('qr_codes.index', compact('qrCodes', 'user_prof'));
     }
 
+
     public function create()
     {
-        $grupos = Grupo::all(); 
-        $materias = Materia::all(); 
-        return view('qr_codes.create', compact('grupos', 'materias')); 
+        $userId = Auth::id(); // ID del profesor autenticado
+
+        // Filtrar grupos asociados al profesor autenticado
+        $grupos = Grupo::whereHas('materia', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->get();
+
+        return view('qr_codes.create', compact('grupos'));
     }
+
 
     public function store(Request $request)
 {
     $request->validate([
-        'grupo_id' => 'required|exists:grupos,id',
+        'grupo_id' => [
+            'required',
+            'exists:grupos,id',
+            function ($attribute, $value, $fail) {
+                $userId = Auth::id();
+                $grupo = \App\Models\Grupo::find($value);
+
+                if (!$grupo || $grupo->materia->user_id !== $userId) {
+                    $fail('El grupo seleccionado no pertenece al profesor autenticado.');
+                }
+            },
+        ],
         'materia_id' => 'required|exists:materias,id',
         'tipo' => 'required|in:asistencia,retardo',
         'hora_clase' => [
@@ -92,22 +121,43 @@ class QrCodeController extends Controller
         'fecha_clase' => [
             'required',
             'date',
-            function ($attribute, $value, $fail) {
+            function ($attribute, $value, $fail) use ($request) {
                 $fechaActual = now();
                 $fechaMaxima = now()->addMonths(6);
 
                 if (strtotime($value) > strtotime($fechaMaxima)) {
                     $fail('La fecha de clase no puede ser mayor a 6 meses desde hoy.');
                 }
+
+                // Validar solapamiento de horarios
+                $overlappingQr = \App\Models\QrCode::where('grupo_id', $request->grupo_id)
+                    ->where('fecha_clase', $value)
+                    ->where(function ($query) use ($request) {
+                        $query->whereBetween('hora_clase', [$request->hora_clase, $request->fin_clase])
+                            ->orWhereBetween('fin_clase', [$request->hora_clase, $request->fin_clase])
+                            ->orWhereRaw('? BETWEEN hora_clase AND fin_clase', [$request->hora_clase])
+                            ->orWhereRaw('? BETWEEN hora_clase AND fin_clase', [$request->fin_clase]);
+                    })->first();
+
+                if ($overlappingQr) {
+                    $grupoNombre = $overlappingQr->grupo->nombre_grupo ?? 'Sin grupo';
+                    $materiaNombre = $overlappingQr->materia->nombre ?? 'Sin materia';
+                    $fail("Solapamiento con el QR: 
+                        Grupo: {$grupoNombre}  , 
+                        Materia: {$materiaNombre}, 
+                        Fecha: {$overlappingQr->fecha_clase}, 
+                        Hora Inicio: {$overlappingQr->hora_clase}, 
+                        Hora Fin: {$overlappingQr->fin_clase}.");
+                }
             },
         ],
-        'asistencia' => 'required|integer|min:5',
-        'retardo' => 'required|integer|min:1',
-        'inasistencia' => 'required|integer|min:1',
+        'asistencia' => 'required|integer|min:5|max:10',
+        'retardo' => 'required|integer|min:1|max:10',
+        'inasistencia' => 'required|integer|min:1|max:10',
     ], [
-        'hora_clase.date_format' => 'El formato de la hora de clase debe ser válido (HH:mm).',
-        'fin_clase.date_format' => 'El formato de la hora de fin debe ser válido (HH:mm).',
-        'asistencia.min' => 'El tiempo para asistencia debe ser al menos de 5 minutos.',
+        'asistencia.max' => 'El tiempo para asistencia no puede exceder 10 minutos.',
+        'retardo.max' => 'El tiempo para retardo no puede exceder 10 minutos.',
+        'inasistencia.max' => 'El tiempo para inasistencia no puede exceder 10 minutos.',
     ]);
 
     $qrCodeData = [
@@ -141,11 +191,13 @@ class QrCodeController extends Controller
         'asistencia' => $request->asistencia,
         'retardo' => $request->retardo,
         'inasistencia' => $request->inasistencia,
-        'expira_at' => now()->addMinutes($request->asistencia + $request->retardo + $request->inasistencia), // Corrección aplicada aquí
+        'expira_at' => now()->addMinutes($request->asistencia + $request->retardo + $request->inasistencia),
     ]);
 
     return redirect()->route('qr_codes.index')->with('success', 'Código QR creado exitosamente.');
 }
+
+
 
 
     public function destroy(QrCode $qrCode)

@@ -57,7 +57,7 @@
                 <td>{{ $qrCode->asistencia }}</td>
                 <td>{{ $qrCode->retardo }}</td>
                 <td>{{ $qrCode->inasistencia }}</td>
-                <td>{{ $qrCode->expira_at }}</td>
+                <td>{{ $qrCode->expira }}</td>
                 <td>
                     <form action="{{ route('qr_codes.destroy', $qrCode->id) }}" method="POST" class="delete-form" style="display:inline;">
                         @csrf

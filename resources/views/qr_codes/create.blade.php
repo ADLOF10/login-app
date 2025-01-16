@@ -9,6 +9,15 @@
         <a href="{{ route('qr_codes.index') }}" class="btn btn-secondary">Volver a la lista</a>
     </div>
     <form action="{{ route('qr_codes.store') }}" method="POST" class="card p-4 shadow">
+        @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
         @csrf
         <div class="mb-3">
             <label for="grupo_id" class="form-label">
@@ -17,7 +26,9 @@
             <select name="grupo_id" id="grupo_id" class="form-select" required>
                 <option value="">Selecciona un grupo</option>
                 @foreach($grupos as $grupo)
-                    <option value="{{ $grupo->id }}">{{ $grupo->nombre_grupo }}</option>
+                    <option value="{{ $grupo->id }}" {{ old('grupo_id') == $grupo->id ? 'selected' : '' }}>
+                        {{ $grupo->nombre_grupo }}
+                    </option>
                 @endforeach
             </select>
         </div>
@@ -31,16 +42,17 @@
                 class="form-control" 
                 readonly 
                 placeholder="La materia se llenará automáticamente"
+                value="{{ old('materia_nombre') }}"
             >
         </div>
-        <input type="hidden" name="materia_id" id="materia_id">
+        <input type="hidden" name="materia_id" id="materia_id" value="{{ old('materia_id') }}">
 
         <div class="mb-3">
             <label for="tipo" class="form-label">
                 Tipo de Código: <small>(Selecciona el tipo de código, solo se permite "Asistencia".)</small>
             </label>
             <select name="tipo" id="tipo" class="form-select" required>
-                <option value="asistencia">Asistencia</option>
+                <option value="asistencia" {{ old('tipo') == 'asistencia' ? 'selected' : '' }}>Asistencia</option>
             </select>
         </div>
         <div class="mb-3">
@@ -54,6 +66,7 @@
                 class="form-control" 
                 required 
                 min="{{ date('Y-m-d') }}"
+                value="{{ old('fecha_clase') }}"
             >
         </div>
         <div class="mb-3">
@@ -69,6 +82,7 @@
                 min="07:00" 
                 max="18:00"
                 title="La hora debe estar entre las 07:00 y las 18:00"
+                value="{{ old('hora_clase') }}"
             >
         </div>
         <div class="mb-3">
@@ -83,11 +97,12 @@
                 class="form-control" 
                 required
                 title="La hora de fin debe ser al menos 1 hora después y no más de 4 horas después de la hora de inicio, ni exceder las 19:00."
+                value="{{ old('fin_clase') }}"
             >
         </div>
         <div class="mb-3">
             <label for="asistencia" class="form-label">
-                Minutos para Asistencia: <small>(Tiempo en minutos para marcar asistencia, mínimo 5 minutos.)</small>
+                Minutos para Asistencia: <small>(Mínimo 5 y máximo 10 minutos.)</small>
             </label>
             <input 
                 type="number" 
@@ -97,11 +112,13 @@
                 required
                 placeholder="Ejemplo: 5"
                 min="5"
+                max="10"
+                value="{{ old('asistencia') }}"
             >
         </div>
         <div class="mb-3">
             <label for="retardo" class="form-label">
-                Minutos para Retardo: <small>(Tiempo en minutos para marcar retardo después de la asistencia.)</small>
+                Minutos para Retardo: <small>(Mínimo 1 y máximo 10 minutos.)</small>
             </label>
             <input 
                 type="number" 
@@ -111,11 +128,13 @@
                 required
                 placeholder="Ejemplo: 10"
                 min="1"
+                max="10"
+                value="{{ old('retardo') }}"
             >
         </div>
         <div class="mb-3">
             <label for="inasistencia" class="form-label">
-                Minutos para Inasistencia: <small>(Tiempo en minutos para marcar inasistencia después del retardo.)</small>
+                Minutos para Inasistencia: <small>(Mínimo 1 y máximo 10 minutos.)</small>
             </label>
             <input 
                 type="number" 
@@ -125,8 +144,10 @@
                 required
                 placeholder="Ejemplo: 20"
                 min="1"
+                max="10"
+                value="{{ old('inasistencia') }}"
             >
-        </div>
+        </div>        
         <div class="d-flex justify-content-end">
             <button type="submit" class="btn btn-success-custom">Generar Código QR</button>
         </div>
