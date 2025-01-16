@@ -46,12 +46,12 @@
                             pattern="[a-zA-Z0-9\s\-]+" 
                             maxlength="15" 
                             placeholder="Ejemplo: Grupo A-1"
-                            title="Solo letras, números, espacios y guiones. Máximo 15 caracteres."
+                            title="Solo se permiten letras, números, espacios y guiones. Máximo 15 caracteres."
                         >
                         @error('nombre_grupo')
                             <div class="text-danger">{{ $message }}</div>
                         @enderror
-                    </div>
+                    </div>                                        
                     <div class="mb-3">
                         <label for="materia_id" class="form-label">Materia:</label>
                         <select name="materia_id" id="materia_id" class="form-select" required>
