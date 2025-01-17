@@ -28,6 +28,8 @@ use App\Http\Controllers\Auth\PasswordResetController;
 
 
 
+
+
 Route::get('/login', [WebLoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [WebLoginController::class, 'login']);
 Route::post('/logout', [WebLoginController::class, 'logout'])->name('logout');
@@ -80,17 +82,10 @@ Route::get('/grupos/{grupo}', [GrupoController::class, 'show'])->name('grupos.sh
 // Route::get('password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
 // Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 
-// Ruta para mostrar el formulario de solicitud de restablecimiento
-Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-
-// Ruta para procesar la solicitud de envío del enlace
-Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-
-// Ruta para mostrar el formulario de restablecimiento con token
-Route::get('password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-
-// Ruta para procesar el restablecimiento de contraseña
-Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
+Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request'); // Muestra el formulario para solicitar un enlace de restablecimiento
+Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email'); // Procesa el envío del enlace de restablecimiento
+Route::get('password/reset/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset'); // Muestra el formulario para restablecer la contraseña con el token
+Route::post('password/reset', [ForgotPasswordController::class, 'reset'])->name('password.update'); // Procesa el restablecimiento de contraseña
 
 
 
