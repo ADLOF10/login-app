@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\AlumnoAsignadoMailable;
+use Illuminate\Support\Facades\Mail;
 
 class GrupoController extends Controller
 {
@@ -154,6 +156,7 @@ class GrupoController extends Controller
         }
     }
 
+
     public function assignAlumnos(Request $request, Grupo $grupo)
     {
         $this->authorizeGrupo($grupo); // Verifica que el usuario tenga acceso al grupo
@@ -171,10 +174,22 @@ class GrupoController extends Controller
         $alumnosIds = $request->input('alumnos');
 
         // Asignar los alumnos al grupo
-        $grupo->alumnos()->syncWithoutDetaching($alumnosIds);
+        foreach ($alumnosIds as $alumnoId) {
+            // Verificar si el alumno ya estaba asignado al grupo
+            if (!$grupo->alumnos->contains($alumnoId)) {
+                $grupo->alumnos()->attach($alumnoId);
+
+                // Enviar correo al alumno
+                $alumno = \App\Models\Alumno::find($alumnoId);
+                $profesor = Auth::user();
+
+                Mail::to($alumno->correo_institucional)->send(new AlumnoAsignadoMailable($grupo, $profesor));
+            }
+        }
 
         return redirect()->route('grupos.show', $grupo->id)->with('success', 'Alumnos asignados exitosamente al grupo.');
     }
+
 
     public function removeAlumno(Request $request, Grupo $grupo)
     {
@@ -200,6 +215,5 @@ class GrupoController extends Controller
             'alumno_id' => $alumnoId,
         ]);
     }
-
 
 }
