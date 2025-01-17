@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class MateriaController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         $userId = Auth::id(); // Obtén el ID del usuario autenticado
         $search = $request->input('search');
@@ -26,9 +26,9 @@ class MateriaController extends Controller
             })
             ->get();
 
-        return view('materias.index', compact('materias'));
+        return view('materias.index', compact('materias','user_prof'));
+        
     }
-
 
     public function create()
     {

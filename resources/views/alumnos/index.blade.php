@@ -58,7 +58,7 @@
         </div>
     </div>
 
-    <table class="table table-striped table-bordered mt-4" id="alumnosTable">
+    <table class="table table-striped table-bordered mt-4">
         <thead class="text-white" style="background-color: #004d40;">
             <tr>
                 <th>Foto</th>
@@ -167,22 +167,6 @@
 
     function subirCSV() {
         document.getElementById('archivoCSV').click();
-    }
-
-    function filterAlumnos() {
-        const searchInput = document.getElementById('searchAlumno').value.toLowerCase();
-        const table = document.getElementById('alumnosTable');
-        const rows = table.querySelectorAll('tbody tr');
-
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            const rowText = Array.from(cells).map(cell => cell.textContent.toLowerCase()).join(' ');
-            if (rowText.includes(searchInput)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
     }
 </script>
 @endsection

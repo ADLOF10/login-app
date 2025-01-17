@@ -20,9 +20,7 @@
         @endif
         @csrf
         <div class="mb-3">
-            <label for="grupo_id" class="form-label">
-                Grupo: <small>(Selecciona el grupo para el que se generará el QR.)</small>
-            </label>
+            <label for="grupo_id" class="form-label">Grupo:</label>
             <select name="grupo_id" id="grupo_id" class="form-select" required>
                 <option value="">Selecciona un grupo</option>
                 @foreach($grupos as $grupo)
@@ -33,9 +31,7 @@
             </select>
         </div>
         <div class="mb-3">
-            <label for="materia_nombre" class="form-label">
-                Materia: <small>(Se llenará automáticamente según el grupo seleccionado.)</small>
-            </label>
+            <label for="materia_nombre" class="form-label">Materia:</label>
             <input 
                 type="text" 
                 id="materia_nombre" 
@@ -48,17 +44,13 @@
         <input type="hidden" name="materia_id" id="materia_id" value="{{ old('materia_id') }}">
 
         <div class="mb-3">
-            <label for="tipo" class="form-label">
-                Tipo de Código: <small>(Selecciona el tipo de código, solo se permite "Asistencia".)</small>
-            </label>
+            <label for="tipo" class="form-label">Tipo de Código:</label>
             <select name="tipo" id="tipo" class="form-select" required>
                 <option value="asistencia" {{ old('tipo') == 'asistencia' ? 'selected' : '' }}>Asistencia</option>
             </select>
         </div>
         <div class="mb-3">
-            <label for="fecha_clase" class="form-label">
-                Fecha de Clase: <small>(Debe ser una fecha futura y no mayor a 6 meses desde hoy.)</small>
-            </label>
+            <label for="fecha_clase" class="form-label">Fecha de Clase:</label>
             <input 
                 type="date" 
                 name="fecha_clase" 
@@ -70,9 +62,7 @@
             >
         </div>
         <div class="mb-3">
-            <label for="hora_clase" class="form-label">
-                Hora de Clase: <small>(Debe estar entre las 07:00 y las 18:00.)</small>
-            </label>
+            <label for="hora_clase" class="form-label">Hora de Clase:</label>
             <input 
                 type="time" 
                 name="hora_clase" 
@@ -157,61 +147,30 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const fechaClase = document.getElementById('fecha_clase');
-        const horaClase = document.getElementById('hora_clase');
-        const finClase = document.getElementById('fin_clase');
-        const form = document.querySelector('form');
-
         const currentDate = new Date();
+
+        // Obtener la hora local y verificar si son las 18:00 o más
         const currentHour = currentDate.getHours();
 
-        let minDate = currentHour >= 18
-            ? new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1)
-            : currentDate;
+        // Crear una nueva fecha mínima
+        let minDate;
 
-        let maxDate = new Date(minDate);
-        maxDate.setMonth(maxDate.getMonth() + 6);
-
-        fechaClase.setAttribute('min', minDate.toISOString().split('T')[0]);
-        fechaClase.setAttribute('max', maxDate.toISOString().split('T')[0]);
-
-        function validateTimes() {
-            const horaInicio = horaClase.value;
-            const horaFin = finClase.value;
-
-            if (horaInicio && horaFin) {
-                const [startHours, startMinutes] = horaInicio.split(':').map(Number);
-                const [endHours, endMinutes] = horaFin.split(':').map(Number);
-
-                const startInMinutes = startHours * 60 + startMinutes;
-                const endInMinutes = endHours * 60 + endMinutes;
-
-                const diffInMinutes = endInMinutes - startInMinutes;
-                const limiteMaximo = 19 * 60; // 19:00 en minutos
-
-                if (diffInMinutes < 60) {
-                    alert("La hora de fin debe ser al menos 1 hora después de la hora de inicio.");
-                    finClase.value = "";
-                    return;
-                }
-
-                if (diffInMinutes > 240) {
-                    alert("La hora de fin no puede ser más de 4 horas después de la hora de inicio.");
-                    finClase.value = "";
-                    return;
-                }
-
-                if (endInMinutes > limiteMaximo) {
-                    alert("La hora de fin no puede exceder las 19:00.");
-                    finClase.value = "";
-                }
-            }
+        if (currentHour >= 18) {
+            // Si son las 18:00 o más, incrementar la fecha al día siguiente
+            minDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
+        } else {
+            // Si es antes de las 18:00, usar la fecha actual
+            minDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
         }
 
-        horaClase.addEventListener('change', validateTimes);
-        finClase.addEventListener('change', validateTimes);
+        // Formatear la fecha mínima a 'YYYY-MM-DD'
+        const formattedMinDate = minDate.toISOString().split('T')[0];
+        fechaClase.setAttribute('min', formattedMinDate);
 
+        // Manejar el cambio en el campo "grupo_id"
         document.getElementById('grupo_id').addEventListener('change', function () {
             const grupoId = this.value;
+
             if (!grupoId) {
                 document.getElementById('materia_nombre').value = '';
                 document.getElementById('materia_id').value = '';
@@ -239,31 +198,9 @@
             })
             .catch(error => console.error('Error:', error));
         });
-
-        // Restablecer valores al cargar
-        horaClase.value = '';
-        finClase.value = '';
-
-        // Forzar limpieza de caché al enviar
-        form.addEventListener('submit', function () {
-            horaClase.value = horaClase.value.trim();
-            finClase.value = finClase.value.trim();
-        });
-
-        // Validar valores en tiempo real
-        horaClase.addEventListener('input', function () {
-            horaClase.value = horaClase.value.trim();
-        });
-
-        finClase.addEventListener('input', function () {
-            finClase.value = finClase.value.trim();
-        });
-
-        // Deshabilitar caché del formulario
-        form.setAttribute('autocomplete', 'off');
-        horaClase.setAttribute('autocomplete', 'off');
-        finClase.setAttribute('autocomplete', 'off');
     });
 </script>
+
+
 
 @endsection

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class GrupoController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         $search = $request->input('search');
         $userId = Auth::id(); // ID del usuario autenticado
@@ -73,10 +73,11 @@ class GrupoController extends Controller
             'materia_id.exists' => 'La materia seleccionada no es válida.',
         ]);
 
-        Grupo::create($request->all());
+    Grupo::create($request->all());
 
-        return redirect()->route('grupos.index')->with('success', 'Grupo creado exitosamente.');
-    }
+    return redirect()->route('grupos.index')->with('success', 'Grupo creado exitosamente.');
+}
+
 
     public function edit(Grupo $grupo)
     {

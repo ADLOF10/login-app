@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers;
 
@@ -10,7 +10,6 @@ use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class QrCodeController extends Controller
 {
@@ -86,23 +85,16 @@ class QrCodeController extends Controller
                 $minHora = strtotime('07:00');
                 $maxHora = strtotime('18:00');
 
-                if ($horaInicio < $minHora || $horaInicio > $maxHora) {
-                    $fail('La hora de clase debe estar entre las 07:00 y las 18:00.');
-                }
-            },
-        ],
-        'fin_clase' => [
-            'required',
-            'date_format:H:i',
-            function ($attribute, $value, $fail) use ($request) {
-                if (!$request->hora_clase) {
-                    $fail('Primero debes ingresar la hora de inicio.');
-                    return;
-                }
+        
+        $qrCode = Builder::create()
+            ->writer(new PngWriter())
+            ->data(json_encode($qrCodeData))
+            ->size(200)
+            ->margin(10)
+            ->build();
 
-                $horaInicio = strtotime($request->hora_clase);
-                $horaFin = strtotime($value);
-                $limiteMaximo = strtotime('19:00');
+        
+        $qrCodeBase64 = base64_encode($qrCode->getString());
 
                 if ($horaInicio >= strtotime('15:01') && $horaInicio <= strtotime('18:00') && $horaFin > $limiteMaximo) {
                     $fail('Si la hora de inicio está entre las 15:01 y las 18:00, la hora de fin no puede exceder las 19:00.');
@@ -200,6 +192,8 @@ class QrCodeController extends Controller
     return redirect()->route('qr_codes.index')->with('success', 'Código QR creado exitosamente.');
 }
 
+        return redirect()->route('qr_codes.index')->with('success', 'Código QR creado exitosamente.');
+    }
 
 
 
@@ -226,4 +220,6 @@ class QrCodeController extends Controller
             'materia_nombre' => $materia->nombre,
         ]);
     }
+    
+
 }
