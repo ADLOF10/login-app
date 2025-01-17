@@ -59,7 +59,7 @@
                 <li class="list-group-item"><strong>Semestre:</strong> {{ $alumno->semestre }}</li>
             </ul>
             <div class="mt-4">
-                <a href="{{ route('alumnos.index') }}" class="btn btn-secondary">Regresar</a>
+                <a href="{{ route('asistencias.index') }}" class="btn btn-secondary">Regresar</a>
             </div>
         </div>
     </div>

@@ -22,7 +22,7 @@
             <th>Apellidos</th>
             <th>Correo Institucional</th>
             <th>Numero de Cuanta</th>
-            <th>Consultar asistencias por  alumnos</th> 
+            <th>Consultar asistencias por alumnos</th> 
         </tr>
     </thead>
     <tbody>
@@ -35,7 +35,8 @@
             <td>{{ $alumno->alumno->correo_institucional }}</td>
             <td>{{ $alumno->alumno->numero_cuenta }}</td>
             <td>
-                <a href="{{ route('alumListaasis', $alumno->alumno_id) }}" class="btn btn-info btn-sm" >Detalles</a>
+                <a href="{{ route('alumnos.show', $alumno->alumno_id) }}" class="btn btn-info btn-sm">Ver Grafica</a>
+                <a href="{{ route('alumListaasis', $alumno->alumno_id) }}" class="btn btn-warning btn-sm" >Historial en Lista </a>
                 
             </td>
         </tr>
