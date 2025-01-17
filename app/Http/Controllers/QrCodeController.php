@@ -15,34 +15,35 @@ use Carbon\Carbon;
 class QrCodeController extends Controller
 {
     public function index()
-    {
-        $user_prof = Auth::user()->name;
+{
+    $userId = Auth::id(); // ID del profesor autenticado
 
-        $qrCodes = DB::table('qr_codes')
-            ->join('grupos', 'qr_codes.grupo_id', '=', 'grupos.id')
-            ->join('materias', 'qr_codes.materia_id', '=', 'materias.id')
-            ->join('users', 'materias.user_id', '=', 'users.id')
-            ->select(
-                'qr_codes.*',
-                'grupos.nombre_grupo as grupo_nombre',
-                'materias.nombre as materia_nombre'
-            )
-            ->where('users.name', $user_prof)
-            ->get()
-            ->map(function ($qrCode) {
-                // Convertir created_at y cualquier otro campo necesario en instancias de Carbon
-                $qrCode->created_at = Carbon::parse($qrCode->created_at);
+    $qrCodes = DB::table('qr_codes')
+        ->join('grupos', 'qr_codes.grupo_id', '=', 'grupos.id')
+        ->join('materias', 'qr_codes.materia_id', '=', 'materias.id')
+        ->join('users', 'materias.user_id', '=', 'users.id')
+        ->select(
+            'qr_codes.*',
+            'grupos.nombre_grupo as grupo_nombre',
+            'materias.nombre as materia_nombre'
+        )
+        ->where('users.id', $userId) // Filtrar por ID del usuario autenticado
+        ->get()
+        ->map(function ($qrCode) {
+            // Convertir created_at y cualquier otro campo necesario en instancias de Carbon
+            $qrCode->created_at = Carbon::parse($qrCode->created_at);
 
-                // Calcular campo expira
-                $expira = Carbon::parse("{$qrCode->fecha_clase} {$qrCode->hora_clase}")
-                    ->addMinutes($qrCode->asistencia + $qrCode->retardo + $qrCode->inasistencia);
-                $qrCode->expira = $expira->format('Y-m-d H:i:s');
+            // Calcular campo expira
+            $expira = Carbon::parse("{$qrCode->fecha_clase} {$qrCode->hora_clase}")
+                ->addMinutes($qrCode->asistencia + $qrCode->retardo + $qrCode->inasistencia);
+            $qrCode->expira = $expira->format('Y-m-d H:i:s');
 
-                return $qrCode;
-            });
+            return $qrCode;
+        });
 
-        return view('qr_codes.index', compact('qrCodes', 'user_prof'));
-    }
+    return view('qr_codes.index', compact('qrCodes', 'userId'));
+}
+
 
 
     public function create()

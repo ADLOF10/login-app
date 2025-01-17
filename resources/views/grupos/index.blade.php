@@ -8,18 +8,19 @@
         <h1>Lista de Grupos</h1>
         <a href="{{ route('grupos.create') }}" class="btn btn-success-custom">Crear Nuevo Grupo</a>
     </div>
-    <form id="search-form" action="{{ route('grupos.index') }}" method="GET" class="mb-3 d-flex">
+    
+    <!-- Input para buscar -->
+    <div class="mb-4">
         <input 
             type="text" 
-            name="search" 
-            id="search-input"
-            class="form-control me-2" 
+            id="searchGrupo" 
+            class="form-control" 
             placeholder="Buscar por nombre del grupo o materia..." 
-            value="{{ request('search') }}"
+            oninput="filterGrupos()"
         >
-        <a href="{{ route('grupos.index') }}" class="btn btn-secondary">Limpiar</a>
-    </form>
-    <table class="table table-striped table-bordered">
+    </div>
+    
+    <table class="table table-striped table-bordered" id="gruposTable">
         <thead class="text-white" style="background-color: #004d40;">
             <tr>
                 <th>ID</th>
@@ -57,13 +58,20 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = document.getElementById('search-input');
-        const searchForm = document.getElementById('search-form');
+    function filterGrupos() {
+        const searchInput = document.getElementById('searchGrupo').value.toLowerCase();
+        const table = document.getElementById('gruposTable');
+        const rows = table.querySelectorAll('tbody tr');
 
-        searchInput.addEventListener('input', function () {
-            searchForm.submit();
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const rowText = Array.from(cells).map(cell => cell.textContent.toLowerCase()).join(' ');
+            if (rowText.includes(searchInput)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
         });
-    });
+    }
 </script>
 @endsection

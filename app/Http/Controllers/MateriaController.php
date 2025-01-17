@@ -17,19 +17,18 @@ class MateriaController extends Controller
 
         // Filtrar materias según el usuario autenticado
         $materias = Materia::with('docente')
-        ->where('user_id', $userId)
-        ->when($search, function ($query) use ($search) {
-            $query->where('nombre', 'like', "%{$search}%")
-                ->orWhere('clave', 'like', "%{$search}%")
-                ->orWhereHas('docente', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
+            ->where('user_id', $userId) // Filtrar materias del profesor autenticado
+            ->when($search, function ($query) use ($search, $userId) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nombre', 'like', "%{$search}%")
+                    ->orWhere('clave', 'like', "%{$search}%");  
                 });
-        })
-        ->get();
-
+            })
+            ->get();
 
         return view('materias.index', compact('materias'));
     }
+
 
     public function create()
     {

@@ -2,54 +2,54 @@
 
 @section('title', 'Lista de Asistencias')
 
-
 @section('content')
 
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Lista de Asistencias de este alumno</h1>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Historial de Asistencias por Alumno</h1>
         <td>
-            <a href="{{ route('asistencias.index') }}" class="btn btn-info btn-sm" >Regresar</a>
+            <a href="{{ route('asistencias.index') }}" class="btn btn-info btn-sm">Regresar</a>
         </td>
-        
+    </div>
+
+    @if($asistencias->isEmpty())
+        <div class="alert alert-warning text-center" role="alert">
+            No hay asistencias registradas para este alumno. Por favor, asegúrate de que el alumno haya asistido a alguna clase.
         </div>
+    @else
         <table class="table table-striped table-bordered">
-        <thead class="text-white" style="background-color: #004d40;">
-            <tr>
-                <th>ID</th>
-                <th>Alumno</th>
-                <th>Grupo</th>
-                <th>Materia</th> 
-                <th>Fecha de Clase</th> 
-                <th>Hora de Clase</th> 
-                <th>Fecha</th>
-                <th>Hora de Registro</th>
-                <th>Tipo</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($asistencias as $asistencia)
-            <tr>
-                <td>{{ $asistencia->id }}</td>
-                <td>{{ $asistencia->alumno->nombre }} {{ $asistencia->alumno->apellidos }}</td>
-                <td>{{ $asistencia->grupo->nombre_grupo }}</td>
-                <td>{{ $asistencia->materia->nombre }}</td> 
-                <td>{{ $asistencia->fecha_clase }}</td> 
-                <td>{{ $asistencia->hora_clase }}</td> 
-                <td>{{ $asistencia->fecha }}</td>
-                <td>{{ $asistencia->hora_registro }}</td>
-                <td>{{ ucfirst($asistencia->tipo) }}</td>
-                <td>{{ ucfirst($asistencia->estado) }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-       
-
+            <thead class="text-white" style="background-color: #004d40;">
+                <tr>
+                    <th>ID</th>
+                    <th>Alumno</th>
+                    <th>Grupo</th>
+                    <th>Materia</th>
+                    <th>Fecha de Clase</th>
+                    <th>Hora de Clase</th>
+                    <th>Fecha</th>
+                    <th>Hora de Registro</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($asistencias as $asistencia)
+                <tr>
+                    <td>{{ $asistencia->id }}</td>
+                    <td>{{ $asistencia->alumno->nombre }} {{ $asistencia->alumno->apellidos }}</td>
+                    <td>{{ $asistencia->grupo->nombre_grupo }}</td>
+                    <td>{{ $asistencia->materia->nombre }}</td>
+                    <td>{{ $asistencia->fecha_clase }}</td>
+                    <td>{{ $asistencia->hora_clase }}</td>
+                    <td>{{ $asistencia->fecha }}</td>
+                    <td>{{ $asistencia->hora_registro }}</td>
+                    <td>{{ ucfirst($asistencia->tipo) }}</td>
+                    <td>{{ ucfirst($asistencia->estado) }}</td>
+                </tr>
+                @endforeach
+            </tbody>
         </table>
-        </div>
-
-
-
+    @endif
+</div>
 
 @endsection

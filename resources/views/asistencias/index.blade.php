@@ -6,7 +6,7 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Lista de asistencia por grupos</h1>
+        <h1>Asistencia por grupos</h1>
     
     </div>
     <table class="table table-striped table-bordered">

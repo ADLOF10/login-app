@@ -127,9 +127,14 @@ class GrupoController extends Controller
         $this->authorizeGrupo($grupo); // Verifica que el usuario tenga acceso
 
         $grupo->load('materia', 'alumnos');
-        $alumnos = $grupo->alumnos;
+
+        // Obtener todos los alumnos registrados por el profesor autenticado
+        $profesorId = Auth::id();
+        $alumnos = \App\Models\Alumno::where('user_id', $profesorId)->get();
+
         return view('grupos.show', compact('grupo', 'alumnos'));
     }
+
 
     public function destroy(Grupo $grupo)
     {
@@ -148,4 +153,53 @@ class GrupoController extends Controller
             abort(403, 'No tienes permiso para acceder a este grupo.');
         }
     }
+
+    public function assignAlumnos(Request $request, Grupo $grupo)
+    {
+        $this->authorizeGrupo($grupo); // Verifica que el usuario tenga acceso al grupo
+
+        // Validar los datos enviados
+        $request->validate([
+            'alumnos' => 'required|array',
+            'alumnos.*' => 'exists:alumnos,id',
+        ], [
+            'alumnos.required' => 'Debe seleccionar al menos un alumno para asignar.',
+            'alumnos.*.exists' => 'Uno o más alumnos seleccionados no existen.',
+        ]);
+
+        // Obtener los IDs de los alumnos seleccionados
+        $alumnosIds = $request->input('alumnos');
+
+        // Asignar los alumnos al grupo
+        $grupo->alumnos()->syncWithoutDetaching($alumnosIds);
+
+        return redirect()->route('grupos.show', $grupo->id)->with('success', 'Alumnos asignados exitosamente al grupo.');
+    }
+
+    public function removeAlumno(Request $request, Grupo $grupo)
+    {
+        $this->authorizeGrupo($grupo); // Verifica que el usuario tenga acceso al grupo
+
+        // Validar el ID del alumno
+        $request->validate([
+            'alumno_id' => 'required|exists:alumnos,id',
+        ], [
+            'alumno_id.required' => 'El ID del alumno es obligatorio.',
+            'alumno_id.exists' => 'El alumno seleccionado no existe.',
+        ]);
+
+        // Obtener el ID del alumno
+        $alumnoId = $request->input('alumno_id');
+
+        // Eliminar al alumno del grupo
+        $grupo->alumnos()->detach($alumnoId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Alumno eliminado del grupo exitosamente.',
+            'alumno_id' => $alumnoId,
+        ]);
+    }
+
+
 }
