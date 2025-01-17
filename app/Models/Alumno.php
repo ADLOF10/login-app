@@ -13,23 +13,30 @@ class Alumno extends Model
 
     protected $fillable = ['nombre', 'apellidos', 'correo_institucional', 'numero_cuenta', 'semestre', 'foto_perfil', 'user_id'];
 
-    public function asistencias()
-    {
-        return $this->hasMany(Asistencia::class, 'alumno_id');
-    }
+  public function asistencias()
+{
+    return $this->hasMany(Asistencia::class, 'alumno_id')
+        ->whereIn('tipo', ['asistencia', 'retardo', 'inasistencia']);
+}
 
-    public function asistenciasTotales()
-    {
-        return $this->hasMany(Asistencia::class, 'alumno_id');
-    }
+public function asistenciasTotales()
+{
+    return $this->hasMany(Asistencia::class, 'alumno_id')
+        ->whereIn('tipo', ['asistencia', 'retardo']);
+}
 
-    public function calcularPorcentajeAsistencia()
-    {
-        $totalAsistencias = $this->asistenciasTotales()->count();
-        $totalClases = QrCode::whereIn('grupo_id', $this->grupos->pluck('id'))->count();
+public function calcularPorcentajeAsistencia()
+{
+    // Contar asistencias válidas (asistencia y retardo)
+    $totalAsistencias = $this->asistenciasTotales()->count();
 
-        return $totalClases > 0 ? round(($totalAsistencias / $totalClases) * 100, 2) : 0;
-    }
+    // Calcular el total de clases programadas
+    $totalClases = QrCode::whereIn('grupo_id', $this->grupos->pluck('id'))->count();
+
+    // Calcular el porcentaje de asistencias
+    return $totalClases > 0 ? round(($totalAsistencias / $totalClases) * 100) : 0;
+}
+
 
     public function grupos()
     {
