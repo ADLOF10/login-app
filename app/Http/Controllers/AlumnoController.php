@@ -122,95 +122,92 @@ class AlumnoController extends Controller
 
 
     public function subirAlumnosCSV(Request $request)
-    {
-        $request->validate([
-            'archivo_csv' => 'required|mimes:csv,txt,xlsx|max:2048',
-        ]);
+{
+    $request->validate([
+        'archivo_csv' => 'required|mimes:csv,txt,xlsx|max:2048',
+    ]);
 
-        $file = $request->file('archivo_csv');
-        $path = $file->getRealPath();
+    $file = $request->file('archivo_csv');
+    $path = $file->getRealPath();
+    $data = [];
+    $headers = [];
 
-        $data = [];
-        $headers = [];
+    // Carga y procesamiento del archivo
+    $extension = $file->getClientOriginalExtension();
+    if ($extension === 'csv') {
+        $rows = array_map('str_getcsv', file($path));
+        $headers = array_shift($rows); // Encabezados
+        $data = $rows;
+    } elseif ($extension === 'xlsx') {
+        $spreadsheet = IOFactory::load($path);
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray();
+        $headers = array_shift($rows); // Encabezados
+        $data = $rows;
+    }
 
-       
-        $extension = $file->getClientOriginalExtension();
-        if ($extension === 'csv') {
-            
-            $rows = array_map('str_getcsv', file($path));
-            $headers = array_shift($rows); 
-            $data = $rows;
-        } elseif ($extension === 'xlsx') {
-           
-            $spreadsheet = IOFactory::load($path);
-            $sheet = $spreadsheet->getActiveSheet();
-            $rows = $sheet->toArray();
+    // Validación de encabezados
+    $expectedHeaders = ['nombre', 'apellidos', 'correo_institucional', 'numero_cuenta', 'semestre'];
+    if ($headers !== $expectedHeaders) {
+        return back()->with('error', 'La estructura del archivo no es correcta.');
+    }
 
-            $headers = array_shift($rows); 
-            $data = $rows;
-        }
+    // Procesar y registrar cada fila
+    $errores = [];
+    foreach ($data as $index => $row) {
+        [$nombre, $apellidos, $correo, $numero_cuenta, $semestre] = $row;
 
-        
-        $expectedHeaders = ['Nombre', 'Apellidos', 'Correo Institucional', 'Número de Cuenta', 'Semestre'];
-        if ($headers !== $expectedHeaders) {
-            return back()->with('error', 'La estructura del archivo no es correcta.');
-        }
-
-        
-        $errores = [];
-        foreach ($data as $index => $row) {
-            [$nombre, $apellidos, $correo, $numero_cuenta, $semestre] = $row;
-
-            $validator = Validator::make(
-                [
-                    'nombre' => $nombre,
-                    'apellidos' => $apellidos,
-                    'correo_institucional' => $correo,
-                    'numero_cuenta' => $numero_cuenta,
-                    'semestre' => $semestre,
-                ],
-                [
-                    'nombre' => 'required|string|max:255',
-                    'apellidos' => 'required|string|max:255',
-                    'correo_institucional' => 'required|email|regex:/@alumno\.uaemex\.wip$/|unique:alumnos,correo_institucional|unique:users,email',
-                    'numero_cuenta' => 'required|regex:/^\d{7}$/|unique:alumnos,numero_cuenta',
-                    'semestre' => 'nullable|string|max:10',
-                ]
-            );
-
-            if ($validator->fails()) {
-                $errores[] = "Error en la fila " . ($index + 2) . ": " . implode(', ', $validator->errors()->all());
-                continue;
-            }
-
-            
-            $alumno = Alumno::create([
+        $validator = Validator::make(
+            [
                 'nombre' => $nombre,
                 'apellidos' => $apellidos,
                 'correo_institucional' => $correo,
                 'numero_cuenta' => $numero_cuenta,
                 'semestre' => $semestre,
-                'foto_perfil' => 'fotos_perfil/default.png', 
-            ]);
+            ],
+            [
+                'nombre' => 'required|string|max:255',
+                'apellidos' => 'required|string|max:255',
+                'correo_institucional' => 'required|email|regex:/@alumno\.uaemex\.wip$/|unique:alumnos,correo_institucional|unique:users,email',
+                'numero_cuenta' => 'required|regex:/^\d{7}$/|unique:alumnos,numero_cuenta',
+                'semestre' => 'nullable|string|max:10',
+            ]
+        );
 
-            
-            User::create([
-                'name' => $alumno->nombre . ' ' . $alumno->apellidos,
-                'email' => $alumno->correo_institucional,
-                'password' => bcrypt($numero_cuenta), 
-                'role' => 'alumno',
-                'alumno_id' => $alumno->id, 
-                'password' => bcrypt('Wip1234$'), 
-            ]);
+        if ($validator->fails()) {
+            $errores[] = "Error en la fila " . ($index + 2) . ": " . implode(', ', $validator->errors()->all());
+            continue;
         }
 
-        
-        if (count($errores) > 0) {
-            return back()->with('error', implode('<br>', $errores));
-        }
+        // Crear alumno
+        $alumno = Alumno::create([
+            'nombre' => $nombre,
+            'apellidos' => $apellidos,
+            'correo_institucional' => $correo,
+            'numero_cuenta' => $numero_cuenta,
+            'semestre' => $semestre,
+            'user_id' => Auth::id(),
+        ]);
 
-        return back()->with('success', 'Alumnos registrados correctamente.');
+        // Crear usuario
+        User::create([
+            'name' => $alumno->nombre . ' ' . $alumno->apellidos,
+            'email' => $alumno->correo_institucional,
+            'password' => bcrypt('Wip1234$'),
+            'role' => 'alumno',
+            'alumno_id' => $alumno->id,
+        ]);
     }
+
+    // Manejo de errores
+    if (count($errores) > 0) {
+        return back()->with('error', implode('<br>', $errores));
+    }
+
+    return back()->with('success', 'Alumnos registrados correctamente.');
+}
+
+
 
 
 

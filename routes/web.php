@@ -92,3 +92,5 @@ Route::get('password/reset/{token}', [PasswordResetController::class, 'showReset
 // Ruta para procesar el restablecimiento de contraseña
 Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 
+
+

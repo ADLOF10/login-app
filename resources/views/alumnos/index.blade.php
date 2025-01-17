@@ -8,7 +8,7 @@
         <h1>Lista de Alumnos</h1>
         <div>
             <a href="{{ route('alumnos.create') }}" class="btn btn-success-custom">Registrar Alumno</a>
-            <a href="#" class="btn btn-secondary" onclick="mostrarEstructuraCSV()">Subir Alumnos (CSV o XLSX)</a>
+            <a href="#" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#estructuraCSVModal">Subir Alumnos (CSV o XLSX)</a>
         </div>
     </div>
 
@@ -86,7 +86,7 @@
     </table>
 </div>
 
-<div class="modal fade" id="estructuraCSVModal" tabindex="-1" aria-labelledby="estructuraCSVLabel" aria-hidden="true">
+{{-- <div class="modal fade" id="estructuraCSVModal" tabindex="-1" aria-labelledby="estructuraCSVLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -111,7 +111,40 @@
       </div>
     </div>
   </div>
+</div> --}}
+
+<div class="modal fade" id="estructuraCSVModal" tabindex="-1" aria-labelledby="estructuraCSVLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="estructuraCSVLabel">Subir Alumnos desde CSV o XLSX</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Asegúrate de que el archivo CSV o XLSX tenga la siguiente estructura:</p>
+                <ul>
+                <li><strong>Nombre:</strong> Nombre del alumno.</li>
+                <li><strong>Apellidos:</strong> Apellidos del alumno.</li>
+                <li><strong>Correo Institucional:</strong> Debe tener el formato <code>@alumno.uaemex.wip</code>.</li>
+                <li><strong>Número de Cuenta:</strong> Número único del alumno.</li>
+                <li><strong>Semestre:</strong> Semestre actual del alumno.</li>
+                </ul>
+                <p><strong>Nota:</strong> Si algún campo no cumple con los requisitos, el archivo no se procesará.</p>
+                </div>
+                <div class="modal-footer">
+                <form action="{{ route('alumnos.csv') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="archivo_csv" class="form-label">Selecciona el archivo CSV o XLSX:</label>
+                        <input type="file" class="form-control" name="archivo_csv" id="archivo_csv" accept=".csv, .xlsx" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Subir y Registrar Alumnos</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
 
 <form action="{{ route('alumnos.csv') }}" method="POST" enctype="multipart/form-data" id="formCSV" class="d-none">
     @csrf
