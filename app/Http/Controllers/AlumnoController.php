@@ -86,26 +86,15 @@ class AlumnoController extends Controller
 
 
 
-    public function index(Request $request)
+    public function index()
 {
     $userId = Auth::id(); // Obtener el ID del profesor autenticado
 
-   
-                $GrupoId = $request->input('Grupoo_id');
-                $materias = Grupo::with('materia')
-                ->whereHas('materia', function ($query) use ($userId) {
-                    $query->where('user_id', $userId);
-                })
-                ->get();
-
-
     // Obtener los alumnos relacionados con los grupos del profesor autenticado o registrados directamente por él
-    $alumnos =  Alumno::where(function ($query) use ($userId, $GrupoId) {
-        $query->whereHas('grupos', function ($grupoQuery) use ($userId,$GrupoId) {
-            $grupoQuery->whereHas('materia', function ($materiaQuery) use ($userId) {
-                $materiaQuery->where('user_id', $userId);
-            })->orWhere('grupo_id', $GrupoId);
-        })->orWhere('user_id', $userId);
+    $alumnos = Alumno::where(function ($query) use ($userId) {
+        $query->whereHas('grupos.materia', function ($subQuery) use ($userId) {
+            $subQuery->where('user_id', $userId); // Relación con grupos/materias
+        })->orWhere('user_id', $userId); // Alumnos registrados directamente por el profesor
     })->with('asistenciasTotales')->get();
 
     $totalAsistencias = 0;
@@ -118,6 +107,11 @@ class AlumnoController extends Controller
         $totalInasistencias += $alumno->asistenciasTotales()->where('tipo', 'inasistencia')->count();
     }
 
+    $datosGraficaDona = [
+        'asistencias' => $totalAsistencias,
+        'retardos' => $totalRetardos,
+        'inasistencias' => $totalInasistencias,
+    ];
 
     $datosGraficaBarras = $alumnos->map(function ($alumno) {
         return [
@@ -126,7 +120,7 @@ class AlumnoController extends Controller
         ];
     });
 
-    return view('alumnos.index', compact('GrupoId','materias','alumnos', 'datosGraficaBarras'));
+    return view('alumnos.index', compact('alumnos', 'datosGraficaDona', 'datosGraficaBarras'));
 }
 
 

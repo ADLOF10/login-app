@@ -34,22 +34,12 @@
         >
     </div>
 
-    <!-- Formulario para seleccionar la materia -->
-    <form method="GET" action="{{ route('alumnos.index') }}" class="mb-4">
-        <label for="Grupoo_id">Seleccionar Grupo:</label>
-        <select name="Grupoo_id" id="Grupoo_id" class="form-select" onchange="this.form.submit()">
-            <option value="">-- Todas los Grupos --</option>
-            @foreach($materias as $materia)
-                <option value="{{ $materia->id }}" {{ $GrupoId == $materia->id ? 'selected' : '' }}>
-                    {{ $materia->nombre_grupo }}
-                </option>
-            @endforeach
-        </select>
-    </form>
-
     <div class="container mt-3">
         <h3 class="mb-4 text-center">Gráficas Generales de Asistencias</h3>
         <div class="row d-flex justify-content-between align-items-center">
+            <div class="col-md-5 d-flex justify-content-center">
+                <canvas id="graficaDona" style="max-width: 300px;"></canvas>
+            </div>
             <div class="col-md-7">
                 <div class="chart-container" style="overflow-x: auto; overflow-y: auto; max-height: 400px;">
                     <canvas id="graficaBarras" style="min-width: 800px; height: 300px;"></canvas>
@@ -126,9 +116,31 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    
+    const datosGraficaDona = {!! json_encode($datosGraficaDona) !!};
     const datosGraficaBarras = {!! json_encode($datosGraficaBarras) !!};
-   
+
+    const ctxDona = document.getElementById('graficaDona').getContext('2d');
+    new Chart(ctxDona, {
+        type: 'doughnut',
+        data: {
+            labels: ['Asistencias', 'Retardos', 'Inasistencias'],
+            datasets: [{
+                data: [
+                    datosGraficaDona.asistencias,
+                    datosGraficaDona.retardos,
+                    datosGraficaDona.inasistencias
+                ],
+                backgroundColor: ['#4CAF50', '#FFC107', '#FF6384'],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+            }
+        }
+    });
+
     const ctxBarras = document.getElementById('graficaBarras').getContext('2d');
     new Chart(ctxBarras, {
         type: 'bar',
