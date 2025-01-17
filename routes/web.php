@@ -8,6 +8,9 @@ use App\Http\Controllers\GrupoController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\MateriaController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\PasswordResetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,4 +71,23 @@ Route::post('/api/materia-by-grupo', [QrCodeController::class, 'getMateriaByGrup
 Route::post('/grupos/{grupo}/remove-alumno', [GrupoController::class, 'removeAlumno'])->name('grupos.remove-alumno');
 
 
+
+
+
+// Route::get('password/reset', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+// Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+// Route::get('password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+// Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
+
+// Ruta para mostrar el formulario de solicitud de restablecimiento
+Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+
+// Ruta para procesar la solicitud de envío del enlace
+Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+// Ruta para mostrar el formulario de restablecimiento con token
+Route::get('password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+
+// Ruta para procesar el restablecimiento de contraseña
+Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 

@@ -18,6 +18,7 @@
             <th>consultar alumnos</th> 
         </tr>
     </thead>
+    
     <tbody>
         @foreach($grupos as $grupo)
         <tr>
