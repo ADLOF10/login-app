@@ -7,6 +7,7 @@ use App\Http\Controllers\AlumnoProfileController;
 use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +25,10 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::get('/password/{email}', [PasswordController::class, 'getPassword']);
 
 Route::post('/password/update', [PasswordController::class, 'updatePassword']);
+
+Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkFromFlutter'])->name('password.email');
+
+Route::middleware(['auth:sanctum', 'role:alumno'])->get('/asistencias', [AsistenciaController::class, 'getAsistenciasGenerales']);
 
 Route::middleware(['auth:sanctum', 'role:alumno'])->get('/grupos-asignados', [AlumnoProfileController::class, 'getGruposAsignados']);
 

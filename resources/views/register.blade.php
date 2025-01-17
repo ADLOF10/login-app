@@ -30,44 +30,59 @@
     <h2 class="text-center mb-4">Registro</h2>
     <form action="{{ route('register') }}" method="POST">
         @csrf
+        <!-- Nombre -->
         <div class="mb-3">
             <label for="name" class="form-label">Nombre</label>
-            <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required>
+            <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" 
+                   pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,50}$" 
+                   title="El nombre no debe contener números ni caracteres especiales y debe tener un máximo de 50 caracteres."
+                   required>
             @error('name')
                 <div class="text-danger">{{ $message }}</div>
             @enderror
         </div>
+
+        <!-- Correo Institucional -->
         <div class="mb-3">
             <label for="email" class="form-label">Correo Institucional</label>
             <input type="email" class="form-control" id="email" name="email" 
                    value="{{ old('email') }}" 
-                   pattern="^[a-zA-Z0-9._%+-]+@profesor\.uaemex\.wip$" 
+                   pattern="^[a-zA-Z0-9._-]+(?<![-._])@profesor\.uaemex\.wip$" 
+                   title="Debe tener el formato example@profesor.uaemex.wip y no debe contener espacios."
                    placeholder="example@profesor.uaemex.wip" required>
             <div class="form-text">Debe tener el dominio @profesor.uaemex.wip</div>
             @error('email')
                 <div class="text-danger">{{ $message }}</div>
             @enderror
         </div>
+
+        <!-- Correo Real -->
         <div class="mb-3">
             <label for="real_email" class="form-label">Correo Real</label>
             <input type="email" class="form-control" id="real_email" name="real_email" 
                    value="{{ old('real_email') }}" 
-                   placeholder="Correo donde recibirás la validación" required>
+                   pattern="^[a-zA-Z0-9._-]+(?<![-._])@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                   title="Debe ser un correo válido (por ejemplo, example@gmail.com, example@hotmail.com)."
+                   placeholder="example@gmail.com" required>
             @error('real_email')
                 <div class="text-danger">{{ $message }}</div>
             @enderror
         </div>
+
+        <!-- Contraseña -->
         <div class="mb-3">
             <label for="password" class="form-label">Contraseña</label>
             <input type="password" class="form-control" id="password" name="password" 
-                pattern="(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}" 
-                title="La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un carácter especial $,!,@."
-                required>
+                   pattern="(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}" 
+                   title="La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un carácter especial @$!%*?&."
+                   required>
             <small class="form-text text-muted">La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un carácter especial.</small>
             @error('password')
                 <div class="text-danger">{{ $message }}</div>
             @enderror
         </div>
+
+        <!-- Confirmar Contraseña -->
         <div class="mb-3">
             <label for="password_confirmation" class="form-label">Confirmar Contraseña</label>
             <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>

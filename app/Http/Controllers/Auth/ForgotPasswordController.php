@@ -76,4 +76,20 @@ class ForgotPasswordController extends Controller
             ? redirect()->route('login')->with('status', __($status))
             : back()->withErrors(['email' => [__($status)]]);
     }
+      public function sendResetLinkFromFlutter(Request $request)
+    {
+        // Validar que el correo esté presente y tenga un formato válido
+        $request->validate([
+            'email' => 'required|email|exists:users,email', // Asegúrate de tener el campo 'email' en la tabla 'users'
+        ]);
+
+        // Intentar enviar el enlace de restablecimiento de contraseña
+        $status = Password::sendResetLink($request->only('email'));
+
+        // Retornar una respuesta según el estado del envío
+        return $status === Password::RESET_LINK_SENT
+            ? response()->json(['message' => 'Correo enviado con éxito.'], 200)
+            : response()->json(['error' => 'No se pudo enviar el correo. Intenta nuevamente.'], 400);
+    }
 }
+

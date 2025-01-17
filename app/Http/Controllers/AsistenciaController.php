@@ -227,4 +227,32 @@ class AsistenciaController extends Controller
          $asistencia->delete();
          return redirect()->route('asistencias.index')->with('success', 'Asistencia eliminada correctamente.');
      }
+     
+     public function getAsistenciasGenerales(Request $request)
+    {
+    // Obtener el usuario autenticado
+    $user = $request->user();
+
+    // Verificar si el usuario tiene un alumno asociado
+    $alumno = $user->alumno;
+
+    if (!$alumno) {
+        return response()->json(['error' => 'Alumno no encontrado'], 404);
+    }
+
+    // Obtener todas las asistencias del alumno, con las relaciones necesarias
+    $asistencias = $alumno->asistencias()
+        ->with(['grupo', 'materia'])
+        ->get();
+
+    // Retornar las asistencias en formato JSON
+    return response()->json([
+        'alumno' => [
+            'id' => $alumno->id,
+            'nombre' => $alumno->nombre,
+            'apellidos' => $alumno->apellidos,
+        ],
+        'asistencias' => $asistencias,
+    ], 200);
+}
 }
