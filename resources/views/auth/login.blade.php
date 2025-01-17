@@ -136,13 +136,11 @@
                     <input class="form-check-input" type="checkbox" id="rememberMe">
                     <label class="form-check-label" for="rememberMe">Recuérdame</label>
                 </div>
-            </div>
-            <div class="text-center mt-3">
-                <a href="{{ route('password.request') }}" class="btn btn-link">¿Olvidaste tu contraseña?</a>
+                
             </div>
             <div class="text-center mt-3">
                 <a href="{{ route('register') }}" class="btn btn-link">¿No tienes cuenta? Regístrate</a>
-            </div>            
+            </div>
             <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
         </form>
     </div>
