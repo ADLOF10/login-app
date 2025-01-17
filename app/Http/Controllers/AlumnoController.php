@@ -405,7 +405,7 @@ class AlumnoController extends Controller
         $alumno->load('asistenciasTotales.grupo', 'grupos.materia');
 
         $porcentajeAsistencia = $alumno->calcularPorcentajeAsistencia();
-        $datosGrafica = $alumno->asistenciasTotales->groupBy('tipo')->map(function ($asistencias) {
+        $datosGrafica = $alumno->asistencias->groupBy('tipo')->map(function ($asistencias) {
             return $asistencias->count();
         });
 
