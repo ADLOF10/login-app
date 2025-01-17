@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('alumnos', AlumnoController::class);
     Route::resource('asistencias', AsistenciaController::class);
     Route::resource('grupos', GrupoController::class);
-    Route::get('/grupos/{grupo}', [GrupoController::class, 'show'])->name('grupos.show');
+    
     Route::post('/grupos/{grupo}/assign-alumnos', [GrupoController::class, 'assignAlumnos'])->name('grupos.assign-alumnos');
     Route::resource('qr_codes', QrCodeController::class);
     Route::resource('materias', MateriaController::class);
@@ -69,6 +69,7 @@ Route::post('/api/materia-by-grupo', [QrCodeController::class, 'getMateriaByGrup
 
 
 Route::post('/grupos/{grupo}/remove-alumno', [GrupoController::class, 'removeAlumno'])->name('grupos.remove-alumno');
+Route::get('/grupos/{grupo}', [GrupoController::class, 'show'])->name('grupos.show');
 
 
 

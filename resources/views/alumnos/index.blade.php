@@ -34,11 +34,10 @@
         >
     </div>
 
-    <!-- Formulario para seleccionar la materia -->
     <form method="GET" action="{{ route('alumnos.index') }}" class="mb-4">
         <label for="Grupoo_id">Seleccionar Grupo:</label>
         <select name="Grupoo_id" id="Grupoo_id" class="form-select" onchange="this.form.submit()">
-            <option value="">-- Todas los Grupos --</option>
+            <option value="">-- Todos los Grupos --</option>
             @foreach($materias as $materia)
                 <option value="{{ $materia->id }}" {{ $GrupoId == $materia->id ? 'selected' : '' }}>
                     {{ $materia->nombre_grupo }}
@@ -80,11 +79,6 @@
                 <td>
                     <a href="{{ route('alumnos.show', $alumno->id) }}" class="btn btn-info btn-sm">Ver</a>
                     <a href="{{ route('alumnos.edit', $alumno->id) }}" class="btn btn-warning btn-sm">Editar</a>
-                    <form action="{{ route('alumnos.destroy', $alumno->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este alumno?')">Eliminar</button>
-                    </form>
                 </td>
             </tr>
         @endforeach
@@ -126,9 +120,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    
     const datosGraficaBarras = {!! json_encode($datosGraficaBarras) !!};
-   
+
     const ctxBarras = document.getElementById('graficaBarras').getContext('2d');
     new Chart(ctxBarras, {
         type: 'bar',

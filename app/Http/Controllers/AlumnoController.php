@@ -87,47 +87,36 @@ class AlumnoController extends Controller
 
 
     public function index(Request $request)
-{
-    $userId = Auth::id(); // Obtener el ID del profesor autenticado
+    {
+        $userId = Auth::id(); // ID del profesor autenticado
+        $GrupoId = $request->input('Grupoo_id'); // ID del grupo seleccionado
 
-   
-                $GrupoId = $request->input('Grupoo_id');
-                $materias = Grupo::with('materia')
-                ->whereHas('materia', function ($query) use ($userId) {
-                    $query->where('user_id', $userId);
-                })
-                ->get();
+        // Obtener los grupos del profesor autenticado
+        $materias = Grupo::with('materia')
+            ->whereHas('materia', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->get();
 
+        // Filtrar alumnos por grupo seleccionado y profesor autenticado
+        $alumnos = Alumno::whereHas('grupos', function ($query) use ($GrupoId, $userId) {
+            $query->where('grupos.id', $GrupoId)
+                ->whereHas('materia', function ($materiaQuery) use ($userId) {
+                    $materiaQuery->where('user_id', $userId);
+                });
+        })->with('asistenciasTotales')->get();
 
-    // Obtener los alumnos relacionados con los grupos del profesor autenticado o registrados directamente por él
-    $alumnos =  Alumno::where(function ($query) use ($userId, $GrupoId) {
-        $query->whereHas('grupos', function ($grupoQuery) use ($userId,$GrupoId) {
-            $grupoQuery->whereHas('materia', function ($materiaQuery) use ($userId) {
-                $materiaQuery->where('user_id', $userId);
-            })->orWhere('grupo_id', $GrupoId);
-        })->orWhere('user_id', $userId);
-    })->with('asistenciasTotales')->get();
+        // Calcular datos para las gráficas
+        $datosGraficaBarras = $alumnos->map(function ($alumno) {
+            return [
+                'nombre' => $alumno->nombre . ' ' . $alumno->apellidos,
+                'porcentaje' => $alumno->calcularPorcentajeAsistencia(),
+            ];
+        });
 
-    $totalAsistencias = 0;
-    $totalRetardos = 0;
-    $totalInasistencias = 0;
-
-    foreach ($alumnos as $alumno) {
-        $totalAsistencias += $alumno->asistenciasTotales()->where('tipo', 'asistencia')->count();
-        $totalRetardos += $alumno->asistenciasTotales()->where('tipo', 'retardo')->count();
-        $totalInasistencias += $alumno->asistenciasTotales()->where('tipo', 'inasistencia')->count();
+        return view('alumnos.index', compact('GrupoId', 'materias', 'alumnos', 'datosGraficaBarras'));
     }
 
-
-    $datosGraficaBarras = $alumnos->map(function ($alumno) {
-        return [
-            'nombre' => $alumno->nombre . ' ' . $alumno->apellidos,
-            'porcentaje' => $alumno->calcularPorcentajeAsistencia(),
-        ];
-    });
-
-    return view('alumnos.index', compact('GrupoId','materias','alumnos', 'datosGraficaBarras'));
-}
 
 
 
@@ -211,6 +200,7 @@ class AlumnoController extends Controller
                 'password' => bcrypt($numero_cuenta), 
                 'role' => 'alumno',
                 'alumno_id' => $alumno->id, 
+                'password' => bcrypt('Wip1234$'), 
             ]);
         }
 
@@ -425,11 +415,29 @@ class AlumnoController extends Controller
         return view('alumnos.show', compact('alumno', 'porcentajeAsistencia', 'datosGrafica'));
     }
 
-    public function destroy(Alumno $alumno)
-    {
-        $alumno->delete(); 
-        return redirect()->route('alumnos.index')->with('success', 'Alumno eliminado exitosamente.');
+    public function destroy(Request $request, Alumno $alumno)
+{
+    $grupoId = $request->input('grupo_id'); // El grupo del que se eliminará al alumno
+
+    if (!$grupoId) {
+        return redirect()->route('grupos.show', $grupoId)->withErrors('No se especificó el grupo.');
     }
+
+    // Buscar el grupo
+    $grupo = $alumno->grupos()->find($grupoId);
+
+    if (!$grupo) {
+        return redirect()->route('grupos.show', $grupoId)->withErrors('El alumno no pertenece al grupo especificado.');
+    }
+
+    // Desvincular al alumno del grupo
+    $grupo->alumnos()->detach($alumno->id);
+
+    return redirect()->route('grupos.show', $grupo->id)->with('success', 'Alumno desvinculado exitosamente.');
+
+}
+
+
     public function updatePassword(Request $request)
     {
         // Validar los datos recibidos

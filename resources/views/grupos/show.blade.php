@@ -56,7 +56,7 @@
                             >
                                 <i class="fas fa-trash-alt"></i> Eliminar
                             </button>
-                        </td>
+                        </td>                        
                     </tr>
                     @endforeach
                 </tbody>
@@ -119,38 +119,44 @@
     });
 
     document.querySelectorAll('.remove-alumno').forEach(button => {
-        button.addEventListener('click', function () {
-            const alumnoId = this.dataset.alumnoId;
-            const nombre = this.dataset.alumnoNombre;
-            const correo = this.dataset.alumnoCorreo;
+    button.addEventListener('click', function () {
+        const alumnoId = this.dataset.alumnoId;
+        const nombre = this.dataset.alumnoNombre;
+        const correo = this.dataset.alumnoCorreo;
 
-            fetch('{{ route('grupos.remove-alumno', $grupo->id) }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ alumno_id: alumnoId }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const row = document.querySelector(`#alumnos-grupo-table tbody tr[data-alumno-id="${alumnoId}"]`);
-                        row.remove();
-                        const remainingRows = document.querySelectorAll('#alumnos-grupo-table tbody tr');
-                        if (remainingRows.length === 0) {
-                            document.getElementById('alumnos-grupo-table').classList.add('d-none');
-                            document.getElementById('no-alumnos-message').classList.remove('d-none');
-                        }
-                        const select = document.getElementById('alumnos');
-                        const option = document.createElement('option');
-                        option.value = alumnoId;
-                        option.textContent = `${nombre} - ${correo}`;
-                        select.appendChild(option);
+        fetch('{{ route('grupos.remove-alumno', $grupo->id) }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ alumno_id: alumnoId }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Quitar al alumno de la tabla "Alumnos en este grupo"
+                    const row = document.querySelector(`#alumnos-grupo-table tbody tr[data-alumno-id="${alumnoId}"]`);
+                    if (row) row.remove();
+
+                    // Mostrar mensaje si no hay más alumnos en el grupo
+                    const remainingRows = document.querySelectorAll('#alumnos-grupo-table tbody tr');
+                    if (remainingRows.length === 0) {
+                        document.getElementById('alumnos-grupo-table').classList.add('d-none');
+                        document.getElementById('no-alumnos-message').classList.remove('d-none');
                     }
-                })
-                .catch(error => console.error('Error:', error));
-        });
+
+                    // Agregar al alumno al selector "Asignar Alumnos"
+                    const select = document.getElementById('alumnos');
+                    const option = document.createElement('option');
+                    option.value = alumnoId;
+                    option.textContent = `${nombre} - ${correo}`;
+                    select.appendChild(option);
+                }
+            })
+            .catch(error => console.error('Error:', error));
     });
+});
+
 </script>
 @endsection
