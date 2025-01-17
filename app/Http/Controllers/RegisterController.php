@@ -17,21 +17,20 @@
         public function register(Request $request)
 {
     $request->validate([
-    'email' => [
-        'required',
-        'email',
-        function ($attribute, $value, $fail) {
-            // Validar caracteres no permitidos antes del @
-            if (preg_match('/[\/!#$%^&*(){}<>?]/', explode('@', $value)[0])) {
-                $fail('El correo contiene caracteres no permitidos antes del @.');
-            }
-        },
-        'regex:/^[a-zA-Z0-9._-]+(?<![-._])@profesor\.uaemex\.wip$/', // Validar formato de dominio
-        'unique:users,email',
-    ],
-, [
-    'email.regex' => 'El correo debe tener el formato example@profesor.uaemex.wip.',
-],
+        'name' => 'required|string|max:50|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/', // Solo letras y espacios
+        'email' => [
+            'required',
+            'string',
+            'email',
+            'max:255',
+            'regex:/^[a-zA-Z0-9._-]+(?<![-._])@profesor\.uaemex\.wip$/', // Formato válido
+            'unique:users,email',
+            function ($attribute, $value, $fail) {
+                if (preg_match('/[\/!#$%^&*(){}<>?]/', explode('@', $value)[0])) {
+                    $fail('El correo contiene caracteres no permitidos antes del @.');
+                }
+            },
+        ],
         'real_email' => [
             'required',
             'string',

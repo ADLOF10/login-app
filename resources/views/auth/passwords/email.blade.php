@@ -40,18 +40,27 @@
 <body>
     <div class="card">
         <h2 class="mb-4 text-center" style="color: #004d40;">Restablecer Contraseña</h2>
+        
         <!-- Mensaje de éxito -->
         <?php if (session('status')): ?>
             <div class="alert alert-success">
                 <?= session('status') ?>
             </div>
         <?php endif; ?>
+        
+        <!-- Mensaje de error -->
+        @if ($errors->has('email'))
+            <div class="alert alert-danger">
+                {{ $errors->first('email') }}
+            </div>
+        @endif
+
         <!-- Formulario -->
         <form action="{{ route('password.email') }}" method="POST">
             @csrf
             <div class="form-group mb-3">
                 <label for="email">Correo Electrónico</label>
-                <input type="email" name="email" class="form-control" required placeholder="example@correo.com">
+                <input type="email" name="email" class="form-control" required placeholder="Correo Institucional">
             </div>
             <button type="submit" class="btn btn-primary">Enviar enlace de restablecimiento</button>
         </form>        

@@ -62,4 +62,22 @@ return [
     ],
 ],
 
+'regex' => 'El formato del :attribute no es válido.',
+    'confirmed' => 'La confirmación de :attribute no coincide.',
+    'max' => 'El :attribute no debe ser mayor a :max caracteres.',
+    'required' => 'El campo :attribute es obligatorio.',
+
+
+    'password' => [
+        'required',
+        'string',
+        'min:8',
+        'regex:/^(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/', // Al menos una mayúscula y un carácter especial
+        'confirmed', // Validación para confirmar que los campos coincidan
+    ],
+
+    'password.confirmed' => 'La confirmación de la contraseña no coincide.', // Mensaje personalizado
+    'password.regex' => 'La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula y un carácter especial.',
+    'confirmed' => 'La confirmación de :attribute no coincide.',
+
 ];

@@ -28,15 +28,28 @@ class ForgotPasswordController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      */
     public function sendResetLinkEmail(Request $request)
-    {
-        $request->validate(['email' => 'required|email|exists:users,email']);
+{
+    $request->validate([
+        'email' => [
+            'required',
+            'email',
+            'exists:users,email', // Verifica que el correo esté registrado en la base de datos
+        ],
+    ], [
+        'email.exists' => 'El correo proporcionado no está registrado en el sistema.',
+        'email.required' => 'El campo correo electrónico es obligatorio.',
+        'email.email' => 'Debe proporcionar un correo válido.',
+    ]);
 
-        $status = Password::sendResetLink($request->only('email'));
+    $status = Password::sendResetLink(
+        $request->only('email')
+    );
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with(['status' => __($status)])
-            : back()->withErrors(['email' => __($status)]);
-    }
+    return $status === Password::RESET_LINK_SENT
+        ? back()->with(['status' => __('Se ha enviado un enlace para restablecer su contraseña a su correo electrónico.')])
+        : back()->withErrors(['email' => [__($status)]]);
+}
+
 
     /**
      * Display the password reset form.
