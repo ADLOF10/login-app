@@ -8,79 +8,88 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Alumno;
-use App\Models\Asistencia;
-use App\Models\GrupoAlumno;
 
 class GrupoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        //$grupos = Grupo::with('materia')->get();
-        $user_prof=Auth::user()->name;
-        $grupos = DB::table('grupos')
-        ->join('materias', 'grupos.materia_id', '=', 'materias.id')
-        ->join('users', 'materias.user_id', '=', 'users.id')
-        ->select('grupos.id', 'grupos.nombre_grupo', 'materias.nombre', 'users.name')
-        ->where('users.name',$user_prof)
-        ->get(); 
-        
-        return view('grupos.index', compact('grupos','user_prof'));
+        $search = $request->input('search');
+        $userId = Auth::id(); // ID del usuario autenticado
+
+        // Filtrar grupos según el profesor autenticado
+        $grupos = Grupo::with('materia')
+            ->whereHas('materia', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->when($search, function ($query, $search) {
+                $query->where('nombre_grupo', 'like', "%$search%")
+                    ->orWhereHas('materia', function ($query) use ($search) {
+                        $query->where('nombre', 'like', "%$search%");
+                    });
+            })
+            ->get();
+
+        return view('grupos.index', compact('grupos'));
     }
 
     public function create()
     {
-       // $materias = Materia::all(); 
-       $user_prof=Auth::user()->name;
-        $materias = DB::table('materias')
-        ->join('users', 'materias.user_id', '=', 'users.id')
-        ->select('materias.id','materias.nombre')
-        ->where('users.name',$user_prof)
-        ->get();
-        return view('grupos.create', compact('materias','user_prof'));
+        $userId = Auth::id(); // ID del usuario autenticado
+
+        // Solo las materias asociadas al usuario autenticado
+        $materias = Materia::where('user_id', $userId)->get();
+
+        return view('grupos.create', compact('materias'));
     }
 
     public function store(Request $request)
-{
-    $request->validate([
-        'nombre_grupo' => 'required|string|regex:/^[a-zA-Z0-9\s\-]+$/|max:15|unique:grupos,nombre_grupo',
-        'materia_id' => 'required|exists:materias,id',
-    ], [
-        'nombre_grupo.required' => 'El nombre del grupo es obligatorio.',
-        'nombre_grupo.regex' => 'El nombre del grupo solo puede contener letras, números, espacios y guiones.',
-        'nombre_grupo.max' => 'El nombre del grupo no puede exceder los 15 caracteres.',
-        'nombre_grupo.unique' => 'El nombre del grupo ya está registrado.',
-        'materia_id.required' => 'Debe seleccionar una materia.',
-        'materia_id.exists' => 'La materia seleccionada no es válida.',
-    ]);
+    {
+        $request->validate([
+            'nombre_grupo' => [
+                'required',
+                'string',
+                'max:15',
+                'regex:/^[a-zA-Z0-9\s\-]+$/', // Solo letras, números, espacios y guiones
+                'unique:grupos,nombre_grupo',
+            ],
+            'materia_id' => [
+                'required',
+                'exists:materias,id',
+                function ($attribute, $value, $fail) {
+                    $userId = Auth::id();
+                    $materia = Materia::find($value);
 
-    Grupo::create($request->all());
+                    if (!$materia || $materia->user_id !== $userId) {
+                        $fail('No tienes permiso para asignar esta materia.');
+                    }
+                },
+            ],
+        ], [
+            'nombre_grupo.required' => 'El nombre del grupo es obligatorio.',
+            'nombre_grupo.regex' => 'El nombre del grupo solo puede contener letras, números, espacios y guiones.',
+            'nombre_grupo.max' => 'El nombre del grupo no puede exceder los 15 caracteres.',
+            'nombre_grupo.unique' => 'El nombre del grupo ya está registrado.',
+            'materia_id.required' => 'Debe seleccionar una materia.',
+            'materia_id.exists' => 'La materia seleccionada no es válida.',
+        ]);
 
-    return redirect()->route('grupos.index')->with('success', 'Grupo creado exitosamente.');
-}
+        Grupo::create($request->all());
 
+        return redirect()->route('grupos.index')->with('success', 'Grupo creado exitosamente.');
+    }
 
     public function edit(Grupo $grupo)
     {
-        $materias = Materia::all(); 
-        return view('grupos.edit', compact('grupo', 'materias')); 
-    }
+        $this->authorizeGrupo($grupo); // Verifica que el usuario tenga acceso
 
-    public function assignAlumnos(Request $request, Grupo $grupo)
-    {
-        $request->validate([
-            'alumnos' => 'required|array', 
-            'alumnos.*' => 'exists:alumnos,id', 
-        ]);
-
-        
-        $grupo->alumnos()->syncWithoutDetaching($request->alumnos);
-
-        return redirect()->route('grupos.show', $grupo->id)->with('success', 'Alumnos asignados exitosamente.');
+        $materias = Materia::where('user_id', Auth::id())->get();
+        return view('grupos.edit', compact('grupo', 'materias'));
     }
 
     public function update(Request $request, Grupo $grupo)
     {
+        $this->authorizeGrupo($grupo); // Verifica que el usuario tenga acceso
+
         $request->validate([
             'nombre_grupo' => [
                 'required',
@@ -89,7 +98,18 @@ class GrupoController extends Controller
                 'regex:/^[a-zA-Z0-9\s\-]+$/',
                 Rule::unique('grupos', 'nombre_grupo')->ignore($grupo->id),
             ],
-            'materia_id' => 'required|exists:materias,id',
+            'materia_id' => [
+                'required',
+                'exists:materias,id',
+                function ($attribute, $value, $fail) {
+                    $userId = Auth::id();
+                    $materia = Materia::find($value);
+
+                    if (!$materia || $materia->user_id !== $userId) {
+                        $fail('No tienes permiso para asignar esta materia.');
+                    }
+                },
+            ],
         ], [
             'nombre_grupo.required' => 'El nombre del grupo es obligatorio.',
             'nombre_grupo.regex' => 'El nombre del grupo solo puede contener letras, números, espacios y guiones.',
@@ -102,32 +122,30 @@ class GrupoController extends Controller
         return redirect()->route('grupos.index')->with('success', 'Grupo actualizado exitosamente.');
     }
 
-
-
     public function show(Grupo $grupo)
     {
+        $this->authorizeGrupo($grupo); // Verifica que el usuario tenga acceso
+
         $grupo->load('materia', 'alumnos');
-        $alumnos = \App\Models\Alumno::all(); 
+        $alumnos = $grupo->alumnos;
         return view('grupos.show', compact('grupo', 'alumnos'));
     }
 
-    
-   
     public function destroy(Grupo $grupo)
     {
-        $grupo->delete(); 
+        $this->authorizeGrupo($grupo); // Verifica que el usuario tenga acceso
+
+        $grupo->delete();
         return redirect()->route('grupos.index')->with('success', 'Grupo eliminado exitosamente.');
     }
 
-    public function removeAlumno(Request $request, Grupo $grupo)
+    /**
+     * Autoriza que el usuario autenticado solo pueda acceder a sus grupos.
+     */
+    private function authorizeGrupo(Grupo $grupo)
     {
-        $request->validate([
-            'alumno_id' => 'required|exists:alumnos,id',
-        ]);
-
-        $grupo->alumnos()->detach($request->alumno_id);
-
-        return response()->json(['success' => true]);
+        if ($grupo->materia->user_id !== Auth::id()) {
+            abort(403, 'No tienes permiso para acceder a este grupo.');
+        }
     }
-
 }
