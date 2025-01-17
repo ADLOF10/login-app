@@ -57,13 +57,6 @@ return [
 
 'custom' => [
     'real_email' => [
-        'regex' => 'El formato del correo personal es inválido. Asegúrate de usar solo caracteres permitidos como letras, números y algunos símbolos estándar (como puntos, guiones o guiones bajos).',
-    ],
-],
-
-
-'custom' => [
-    'real_email' => [
         'unique' => 'El correo personal ya está registrado.',
         'regex' => 'El formato del correo personal es inválido. Asegúrate de no usar caracteres especiales no permitidos.',
     ],

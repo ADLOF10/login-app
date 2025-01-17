@@ -120,7 +120,7 @@
 
         <!-- Validación para Correo Personal -->
         <div class="mb-3">
-            {{-- <label for="real_email" class="form-label">Correo Personal:</label>
+            <label for="real_email" class="form-label">Correo Personal:</label>
             <input 
                 type="email" 
                 name="real_email" 
@@ -137,7 +137,7 @@
                 <div class="invalid-feedback">
                     {{ $message == 'The real email has already been taken.' ? 'El correo personal ya está registrado.' : $message }}
                 </div>
-            @enderror --}}
+            @enderror
         </div>
 
         <div class="d-flex justify-content-between">
