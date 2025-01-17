@@ -117,29 +117,6 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
-
-        <!-- Validación para Correo Personal -->
-        <div class="mb-3">
-            <label for="real_email" class="form-label">Correo Personal:</label>
-            <input 
-                type="email" 
-                name="real_email" 
-                id="real_email" 
-                class="form-control @error('real_email') is-invalid @enderror" 
-                value="{{ old('real_email') }}" 
-                required 
-                maxlength="50"
-                pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                placeholder="Ejemplo: correo.personal@gmail.com"
-                title="Debe ser un correo electrónico válido, máximo 50 caracteres. No se permiten caracteres especiales antes del @."
-            >
-            @error('real_email')
-                <div class="invalid-feedback">
-                    {{ $message == 'The real email has already been taken.' ? 'El correo personal ya está registrado.' : $message }}
-                </div>
-            @enderror
-        </div>
-
         <div class="d-flex justify-content-between">
             <button type="submit" class="btn btn-primary">Registrar Alumno</button>
             <a href="{{ route('alumnos.index') }}" class="btn btn-secondary">Cancelar</a>

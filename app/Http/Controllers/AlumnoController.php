@@ -87,39 +87,41 @@ class AlumnoController extends Controller
 
 
     public function index()
-    {
-        $userId = Auth::id(); // Obtener el ID del profesor autenticado
+{
+    $userId = Auth::id(); // Obtener el ID del profesor autenticado
 
-        // Obtener los alumnos relacionados con los grupos del profesor autenticado
-        $alumnos = Alumno::whereHas('grupos.materia', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        })->with('asistenciasTotales')->get();
+    // Obtener los alumnos relacionados con los grupos del profesor autenticado o registrados directamente por él
+    $alumnos = Alumno::where(function ($query) use ($userId) {
+        $query->whereHas('grupos.materia', function ($subQuery) use ($userId) {
+            $subQuery->where('user_id', $userId); // Relación con grupos/materias
+        })->orWhere('user_id', $userId); // Alumnos registrados directamente por el profesor
+    })->with('asistenciasTotales')->get();
 
-        $totalAsistencias = 0;
-        $totalRetardos = 0;
-        $totalInasistencias = 0;
+    $totalAsistencias = 0;
+    $totalRetardos = 0;
+    $totalInasistencias = 0;
 
-        foreach ($alumnos as $alumno) {
-            $totalAsistencias += $alumno->asistenciasTotales()->where('tipo', 'asistencia')->count();
-            $totalRetardos += $alumno->asistenciasTotales()->where('tipo', 'retardo')->count();
-            $totalInasistencias += $alumno->asistenciasTotales()->where('tipo', 'inasistencia')->count();
-        }
-
-        $datosGraficaDona = [
-            'asistencias' => $totalAsistencias,
-            'retardos' => $totalRetardos,
-            'inasistencias' => $totalInasistencias,
-        ];
-
-        $datosGraficaBarras = $alumnos->map(function ($alumno) {
-            return [
-                'nombre' => $alumno->nombre . ' ' . $alumno->apellidos,
-                'porcentaje' => $alumno->calcularPorcentajeAsistencia(),
-            ];
-        });
-
-        return view('alumnos.index', compact('alumnos', 'datosGraficaDona', 'datosGraficaBarras'));
+    foreach ($alumnos as $alumno) {
+        $totalAsistencias += $alumno->asistenciasTotales()->where('tipo', 'asistencia')->count();
+        $totalRetardos += $alumno->asistenciasTotales()->where('tipo', 'retardo')->count();
+        $totalInasistencias += $alumno->asistenciasTotales()->where('tipo', 'inasistencia')->count();
     }
+
+    $datosGraficaDona = [
+        'asistencias' => $totalAsistencias,
+        'retardos' => $totalRetardos,
+        'inasistencias' => $totalInasistencias,
+    ];
+
+    $datosGraficaBarras = $alumnos->map(function ($alumno) {
+        return [
+            'nombre' => $alumno->nombre . ' ' . $alumno->apellidos,
+            'porcentaje' => $alumno->calcularPorcentajeAsistencia(),
+        ];
+    });
+
+    return view('alumnos.index', compact('alumnos', 'datosGraficaDona', 'datosGraficaBarras'));
+}
 
 
 
@@ -294,7 +296,7 @@ class AlumnoController extends Controller
     }
     
 
-    public function store(Request $request)
+    public function store(Request $request) 
 {
     $request->validate([
         'nombre' => 'required|string|max:255',
@@ -307,9 +309,18 @@ class AlumnoController extends Controller
             'unique:users,email',
         ],
         'numero_cuenta' => 'required|digits:7|unique:alumnos,numero_cuenta',
-        'semestre' => 'nullable|string|max:10',
-        'real_email' => 'required|email|unique:users,real_email',
+        'semestre' => [
+            'nullable',
+            'string',
+            'max:10',
+            'regex:/^[a-zA-Z0-9\s]+$/', // Permite letras, números y espacios solamente
+        ],
+    ], [
+        'correo_institucional.regex' => 'El correo institucional debe tener el formato usuario@alumno.uaemex.wip.',
+        'semestre.regex' => 'El campo semestre no puede contener caracteres especiales.',
     ]);
+
+    $profesorId = Auth::id(); // Obtener el ID del profesor autenticado
 
     // Crear el registro en la tabla alumnos
     $alumno = Alumno::create([
@@ -318,13 +329,13 @@ class AlumnoController extends Controller
         'correo_institucional' => $request->correo_institucional,
         'numero_cuenta' => $request->numero_cuenta,
         'semestre' => $request->semestre,
+        'user_id' => $profesorId, // Vincular al profesor autenticado
     ]);
 
     // Crear el registro en la tabla users con la contraseña por defecto
     User::create([
         'name' => $request->nombre . ' ' . $request->apellidos,
         'email' => $request->correo_institucional,
-        'real_email' => $request->real_email,
         'password' => bcrypt('Wip1234$'), // Contraseña predeterminada encriptada
         'role' => 'alumno',
         'alumno_id' => $alumno->id,
@@ -332,6 +343,9 @@ class AlumnoController extends Controller
 
     return redirect()->route('alumnos.index')->with('success', 'Alumno registrado exitosamente con la contraseña predeterminada.');
 }
+
+
+
 
     
 
