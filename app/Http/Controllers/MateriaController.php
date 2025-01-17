@@ -17,6 +17,8 @@ class MateriaController extends Controller
 
         $user_prof=Auth::user()->name;
         $materias = DB::table('materias')
+
+        
         ->join('users', 'materias.user_id', '=', 'users.id')
         ->select('materias.id', 'materias.nombre', 'materias.clave', 'users.name')
         ->where('users.name',$user_prof)
