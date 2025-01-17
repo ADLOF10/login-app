@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 
 class AsistenciaController extends Controller
 {
+
+    
      
      public function index()
      {
